@@ -3,7 +3,6 @@
 //   - a 6-char join code
 //   - parsed questions
 //   - players { socketId -> { name, score, answers[] } }
-//   - state machine: lobby -> question -> reveal -> ... -> finished
 // Scoring: faster correct answers earn more (1000 base, linear time decay).
 
 const path = require('path');
