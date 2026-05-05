@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuizBlitz — Player</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="player">
+    <header class="bar">
+      <span class="logo small">⚡ QuizBlitz</span>
+      <span id="meName" class="pill"></span>
+      <span id="meScore" class="pill score">0</span>
+    </header>
+
+    <main id="app">
+      <section id="step-waiting" class="card">
+        <h1>Connecting…</h1>
+        <p id="waitingMsg" class="msg">Joining room <strong id="waitingCode"></strong>…</p>
+      </section>
+
+      <section id="step-lobby" class="card hidden">
+        <h1>You're in!</h1>
+        <p>Hang tight — waiting for the host to start.</p>
+        <p class="dim">Your answer history is saved on this device.</p>
+      </section>
+
+      <section id="step-question" class="card hidden">
+        <div class="qmeta">
+          <span id="qIndex">Q 1 / 1</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="qStatus" class="pill" style="font-size:13px;"></span>
+            <span id="qTimer" class="timer">20</span>
+          </div>
+        </div>
+        <h1 id="qText">…</h1>
+        <ul id="qOptions" class="options player-options"></ul>
+      </section>
+
+      <section id="step-reveal" class="card hidden">
+        <h1 id="revealHeadline">…</h1>
+        <p id="revealDetail" class="msg"></p>
+        <p>Score: <strong id="revealScore">0</strong></p>
+      </section>
+
+      <section id="step-finished" class="card hidden">
+        <h1>Game over!</h1>
+        <p>Your final score: <strong id="finalScore">0</strong></p>
+        <h2>Leaderboard</h2>
+        <ol id="finalBoard" class="leaderboard"></ol>
+        <h2>Your history (this device)</h2>
+        <ol id="history" class="history"></ol>
+        <a class="ghost" href="/" style="margin-top:16px;display:block;">Play again</a>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/player.js"></script>
+  </body>
+</html>

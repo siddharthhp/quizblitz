@@ -1,0 +1,10 @@
+server/node_modules
+*.log
+.DS_Store
+.git
+.env
+.env.local
+README.md
+Dockerfile
+.dockerignore
+kitt.yml

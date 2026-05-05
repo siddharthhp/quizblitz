@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuizBlitz — Host</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="host">
+    <header class="bar">
+      <span class="logo small">⚡ QuizBlitz · Host</span>
+      <span id="status" class="pill">Setup</span>
+    </header>
+
+    <main id="app">
+      <!-- Step 1: upload -->
+      <section id="step-upload" class="card">
+        <h1>Upload your quiz</h1>
+        <p>Drop a <strong>.docx</strong> with your questions. Two formats supported:</p>
+        <details>
+          <summary>Format examples</summary>
+          <pre>Prose:
+Q: What is the capital of France?
+A) London
+B) Paris ✓
+C) Berlin
+D) Rome
+
+Table: header row must be
+| Question | A | B | C | D | Answer |
+where Answer is the letter of the correct option.</pre>
+        </details>
+        <form id="uploadForm">
+          <label id="fileLabel" class="file-drop" for="file">
+            <span id="fileLabelText">📂 Choose a .docx file</span>
+            <div id="fileSpinner" class="spinner hidden"></div>
+          </label>
+          <input type="file" id="file" accept=".docx" required style="display:none" />
+          <button type="submit" id="parseBtn" class="primary" disabled>Parse</button>
+        </form>
+        <div id="uploadMsg" class="msg" style="margin-top:14px;font-size:16px;min-height:2em;"></div>
+      </section>
+
+      <!-- Step 2: lobby -->
+      <section id="step-lobby" class="card hidden">
+        <h1>Room code</h1>
+        <div id="roomCode" class="room-code">------</div>
+        <p>Players join at <strong id="joinUrl"></strong></p>
+        <div class="lobby-grid">
+          <div>
+            <h2><span id="playerCount">0</span> players</h2>
+            <ul id="playerList" class="player-list"></ul>
+          </div>
+          <div>
+            <h2>Quiz</h2>
+            <p><strong id="questionTotal">0</strong> questions loaded.</p>
+            <button id="startBtn" class="primary" disabled>Start Game</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3: question -->
+      <section id="step-question" class="card hidden">
+        <div class="qmeta">
+          <span id="qIndex">Q 1 / 1</span>
+          <span id="qTimer" class="timer">20</span>
+        </div>
+        <h1 id="qText">…</h1>
+        <ul id="qOptions" class="options host-options"></ul>
+        <div class="qfoot">
+          <span id="answeredCount">0 / 0 answered</span>
+          <button id="skipBtn" class="ghost">Skip</button>
+        </div>
+      </section>
+
+      <!-- Step 4: reveal -->
+      <section id="step-reveal" class="card hidden">
+        <h1>Results</h1>
+        <ul id="revealOptions" class="options host-options"></ul>
+        <h2>Leaderboard</h2>
+        <ol id="leaderboard" class="leaderboard"></ol>
+        <button id="nextBtn" class="primary">Next question</button>
+      </section>
+
+      <!-- Step 5: finished -->
+      <section id="step-finished" class="card hidden">
+        <h1>🏆 Final standings</h1>
+        <ol id="finalBoard" class="leaderboard final"></ol>
+        <a class="ghost" href="/host.html">Host another</a>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/host.js"></script>
+  </body>
+</html>

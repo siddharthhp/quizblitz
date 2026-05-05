@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuizBlitz — Live Quiz</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body class="landing">
+    <main class="card">
+      <h1 class="logo">⚡ QuizBlitz</h1>
+      <p class="tagline">Live multiplayer quizzes. Up to 400 players per room.</p>
+
+      <section class="join">
+        <h2>Join a game</h2>
+        <form id="joinForm">
+          <input
+            type="text"
+            id="code"
+            placeholder="ROOM CODE"
+            maxlength="6"
+            autocomplete="off"
+            autocapitalize="characters"
+            required
+          />
+          <input
+            type="text"
+            id="name"
+            placeholder="Your name"
+            maxlength="24"
+            autocomplete="off"
+            required
+          />
+          <button type="submit" class="primary">Join</button>
+        </form>
+      </section>
+
+      <section class="host-cta">
+        <h2>Hosting?</h2>
+        <a class="ghost" href="/host.html">Create a room →</a>
+      </section>
+    </main>
+    <script>
+      document.getElementById('joinForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = document.getElementById('code').value.trim().toUpperCase();
+        const name = document.getElementById('name').value.trim();
+        if (!code || !name) return;
+        sessionStorage.setItem('qb:name', name);
+        sessionStorage.setItem('qb:code', code);
+        location.href = '/player.html';
+      });
+    </script>
+  </body>
+</html>

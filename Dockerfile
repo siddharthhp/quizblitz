@@ -1,0 +1,28 @@
+FROM node:22-alpine
+
+# Create app directory
+WORKDIR /app
+
+# Install dependencies first (layer cache)
+COPY server/package.json server/.npmrc ./
+RUN npm install --omit=dev
+
+# Copy server source
+COPY server/index.js server/parser.js ./
+
+# Copy static frontend
+COPY public/ ./public/
+
+# Non-root user for security
+RUN addgroup -S quizblitz && adduser -S quizblitz -G quizblitz
+USER quizblitz
+
+EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV PORT=3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3000/health || exit 1
+
+CMD ["node", "index.js"]
