@@ -41,6 +41,18 @@ function cleanOption(text) {
     .trim();
 }
 
+const DEFAULT_DURATION_SEC = 20;
+
+/** Extract optional trailing (N) or (Ns) timer hint from question text.
+ *  Returns { question, durationSec } */
+function extractDuration(text) {
+  const m = text.match(/^(.*)\(\s*(\d+)\s*s?\s*\)\s*$/);
+  if (m) {
+    return { question: m[1].trim(), durationSec: parseInt(m[2], 10) };
+  }
+  return { question: text, durationSec: DEFAULT_DURATION_SEC };
+}
+
 function parseProse(rawText) {
   const lines = rawText
     .split(/\r?\n/)
@@ -67,7 +79,8 @@ function parseProse(rawText) {
 
     if (qMatch && !oMatch) {
       flush();
-      current = { question: qMatch[1].trim(), options: [], correctIndex: -1 };
+      const { question, durationSec } = extractDuration(qMatch[1].trim());
+      current = { question, durationSec, options: [], correctIndex: -1 };
       continue;
     }
 
@@ -111,12 +124,13 @@ function parseTables(html) {
     for (let i = 1; i < rows.length; i++) {
       const cells = (rows[i].match(/<t[hd][\s\S]*?<\/t[hd]>/gi) || []).map(stripTags);
       if (!cells.length) continue;
-      const qText = cells[questionCol];
+      const rawQText = cells[questionCol];
       const answerLetter = (cells[answerCol] || '').trim().toUpperCase().charAt(0);
       const options = optionCols.map((c) => cells[c] || '').filter(Boolean);
       const correctIndex = LETTERS.indexOf(answerLetter);
-      if (qText && options.length >= 2 && correctIndex >= 0 && correctIndex < options.length) {
-        questions.push({ question: qText, options, correctIndex });
+      if (rawQText && options.length >= 2 && correctIndex >= 0 && correctIndex < options.length) {
+        const { question: qText, durationSec } = extractDuration(rawQText);
+        questions.push({ question: qText, durationSec, options, correctIndex });
       }
     }
   }
@@ -140,6 +154,7 @@ async function parseDocxBuffer(buffer) {
     question: q.question,
     options: q.options,
     correctIndex: q.correctIndex,
+    durationSec: q.durationSec ?? DEFAULT_DURATION_SEC,
   }));
 }
 

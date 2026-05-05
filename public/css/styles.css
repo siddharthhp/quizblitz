@@ -19,14 +19,20 @@
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 * { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%; /* prevent iOS font inflation */
+  scroll-behavior: smooth;
+}
 html, body {
   margin: 0; padding: 0; min-height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: var(--fg);
   background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
   background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
 }
 main { max-width: 880px; margin: 0 auto; padding: 24px 18px 64px; }
+.player main, .landing main { max-width: 560px; }
 .card {
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -218,3 +224,111 @@ pre { background: rgba(0,0,0,0.4); padding: 14px; border-radius: 10px; overflow-
   flex-shrink: 0;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* =========================================================
+   MOBILE-FIRST PLAYER STYLES
+   Applies to .landing and .player body classes.
+   Designed for phones 320px–430px wide.
+   ========================================================= */
+
+/* Touch-safe tap targets */
+.player .options li,
+.landing button,
+.landing .ghost,
+.player button,
+.player .ghost {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Landing page — full-height centering on small screens */
+@media (max-width: 600px) {
+  .landing body { min-height: 100dvh; display: flex; flex-direction: column; }
+  .landing main {
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    margin: 0 auto;
+    width: 100%; max-width: 100%;
+    padding: 24px 18px 40px;
+    border-radius: 0;
+    border-left: none; border-right: none;
+  }
+  .landing h1.logo { font-size: 42px; text-align: center; margin-bottom: 6px; }
+  .landing .tagline { font-size: 15px; text-align: center; margin-bottom: 28px; }
+
+  /* Bigger inputs for thumbs */
+  .landing input[type='text'] {
+    font-size: 18px; padding: 16px 18px; border-radius: 14px;
+  }
+  #code {
+    font-size: 28px !important;
+    letter-spacing: 0.3em;
+    text-align: center;
+  }
+  .landing .primary {
+    font-size: 18px; padding: 16px; border-radius: 14px;
+    width: 100%;
+  }
+  .landing .host-cta { margin-top: 24px; padding-top: 20px; text-align: center; }
+  .landing .ghost { width: 100%; padding: 14px; font-size: 16px; }
+}
+
+/* Player page — header */
+@media (max-width: 600px) {
+  .player .bar { padding: 10px 14px; gap: 8px; }
+  .player .bar .logo.small { font-size: 15px; }
+  .player .pill { font-size: 12px; padding: 4px 10px; }
+  .player .pill.score { font-size: 14px; }
+
+  /* Reduce main padding so cards use full width */
+  .player main { padding: 10px 10px 60px; }
+
+  /* Cards feel native — edge-to-edge on very small screens */
+  .player .card { padding: 20px 16px; border-radius: 14px; margin-bottom: 12px; }
+
+  /* Waiting / lobby copy */
+  .player #step-waiting h1,
+  .player #step-lobby h1 { font-size: 26px; }
+
+  /* Question step */
+  .player .qmeta { margin-bottom: 10px; font-size: 13px; }
+  .player .timer { font-size: 32px; }
+  .player #qText {
+    font-size: 20px; line-height: 1.4;
+    margin: 0 0 16px;
+  }
+
+  /* Options — single column, large tap targets */
+  .player .options {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+    margin: 0;
+  }
+  .player .options li {
+    font-size: 17px;
+    padding: 18px 16px;
+    border-radius: 14px;
+    min-height: 60px;
+  }
+  .player .options li .letter {
+    width: 36px; height: 36px; border-radius: 10px; font-size: 15px;
+  }
+
+  /* Reveal step */
+  .player #step-reveal h1 { font-size: 22px; }
+  .player #revealDetail { font-size: 15px; }
+
+  /* Finished step */
+  .player #step-finished h1 { font-size: 24px; }
+  .player .leaderboard li { font-size: 15px; padding: 10px 12px; }
+  .player .history li { font-size: 14px; }
+  .player a.ghost { font-size: 16px; padding: 14px; display: block; text-align: center; }
+
+  /* Score banner */
+  .player .banner { font-size: 15px; padding: 5px 14px; }
+}
+
+/* Prevent content jumping when keyboard opens on iOS */
+@supports (height: 100dvh) {
+  .player main { min-height: calc(100dvh - 52px); }
+}

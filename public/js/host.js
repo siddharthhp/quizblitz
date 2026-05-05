@@ -91,6 +91,9 @@
         $('roomCode').textContent = ack.code;
         $('joinUrl').textContent = `${location.origin}  ·  code: ${ack.code}`;
         $('questionTotal').textContent = ack.total;
+        const displayLink = $('displayUrl');
+        displayLink.href = `/leaderboard.html?room=${ack.code}`;
+        displayLink.textContent = `${location.origin}/leaderboard.html?room=${ack.code}`;
         setStatus('Lobby');
         show('step-lobby');
       });
@@ -145,6 +148,15 @@
   });
 
   $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
+
+  function endQuiz() {
+    if (!confirm('End the quiz now? This will show final standings to all players.')) return;
+    socket.emit('host:end', null, (ack) => {
+      if (!ack?.ok) alert(ack?.error || 'Could not end quiz');
+    });
+  }
+  $('endQuizBtnQ').addEventListener('click', endQuiz);
+  $('endQuizBtnR').addEventListener('click', endQuiz);
 
   // Reveal
   socket.on('reveal', (data) => {

@@ -2,8 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QuizBlitz — Live Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f0c29" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>QuizBlitz — Join</title>
     <link rel="stylesheet" href="/css/styles.css" />
   </head>
   <body class="landing">
@@ -21,6 +23,8 @@
             maxlength="6"
             autocomplete="off"
             autocapitalize="characters"
+            inputmode="text"
+            spellcheck="false"
             required
           />
           <input
@@ -28,11 +32,14 @@
             id="name"
             placeholder="Your name"
             maxlength="24"
-            autocomplete="off"
+            autocomplete="nickname"
+            autocapitalize="words"
+            inputmode="text"
             required
           />
-          <button type="submit" class="primary">Join</button>
+          <button type="submit" class="primary">Join →</button>
         </form>
+        <div id="formMsg" class="msg" style="min-height:1.4em;margin-top:6px;"></div>
       </section>
 
       <section class="host-cta">
@@ -45,7 +52,10 @@
         e.preventDefault();
         const code = document.getElementById('code').value.trim().toUpperCase();
         const name = document.getElementById('name').value.trim();
-        if (!code || !name) return;
+        const msg = document.getElementById('formMsg');
+        if (!code) { msg.textContent = 'Enter a room code.'; msg.className = 'msg error'; return; }
+        if (!name) { msg.textContent = 'Enter your name.'; msg.className = 'msg error'; return; }
+        msg.textContent = '';
         sessionStorage.setItem('qb:name', name);
         sessionStorage.setItem('qb:code', code);
         location.href = '/player.html';

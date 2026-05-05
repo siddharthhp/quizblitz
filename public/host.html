@@ -20,7 +20,7 @@
         <details>
           <summary>Format examples</summary>
           <pre>Prose:
-Q: What is the capital of France?
+Q: What is the capital of France? (15)
 A) London
 B) Paris ✓
 C) Berlin
@@ -28,7 +28,10 @@ D) Rome
 
 Table: header row must be
 | Question | A | B | C | D | Answer |
-where Answer is the letter of the correct option.</pre>
+where Answer is the letter of the correct option.
+
+Timer: add (N) or (Ns) at the end of the question text, e.g. "Question text (30)"
+Defaults to 20 seconds if omitted.</pre>
         </details>
         <form id="uploadForm">
           <label id="fileLabel" class="file-drop" for="file">
@@ -46,6 +49,7 @@ where Answer is the letter of the correct option.</pre>
         <h1>Room code</h1>
         <div id="roomCode" class="room-code">------</div>
         <p>Players join at <strong id="joinUrl"></strong></p>
+        <p class="dim">Big screen: <a id="displayUrl" href="#" target="_blank" style="color:var(--accent);"></a></p>
         <div class="lobby-grid">
           <div>
             <h2><span id="playerCount">0</span> players</h2>
@@ -69,7 +73,10 @@ where Answer is the letter of the correct option.</pre>
         <ul id="qOptions" class="options host-options"></ul>
         <div class="qfoot">
           <span id="answeredCount">0 / 0 answered</span>
-          <button id="skipBtn" class="ghost">Skip</button>
+          <div style="display:flex;gap:10px;">
+            <button id="skipBtn" class="ghost">Skip</button>
+            <button id="endQuizBtnQ" class="ghost" style="border-color:var(--bad);color:var(--bad);">End Quiz</button>
+          </div>
         </div>
       </section>
 
@@ -79,7 +86,10 @@ where Answer is the letter of the correct option.</pre>
         <ul id="revealOptions" class="options host-options"></ul>
         <h2>Leaderboard</h2>
         <ol id="leaderboard" class="leaderboard"></ol>
-        <button id="nextBtn" class="primary">Next question</button>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button id="nextBtn" class="primary">Next question</button>
+          <button id="endQuizBtnR" class="ghost" style="border-color:var(--bad);color:var(--bad);">End Quiz</button>
+        </div>
       </section>
 
       <!-- Step 5: finished -->

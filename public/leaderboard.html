@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuizBlitz — Leaderboard</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      body { overflow: hidden; }
+      main { max-width: 720px; }
+      #step-join { text-align: center; margin-top: 60px; }
+      #step-live h1 { text-align: center; font-size: 36px; margin-bottom: 4px; }
+      #step-live .subtitle { text-align: center; color: var(--muted); margin-bottom: 20px; font-size: 14px; }
+      .leaderboard li {
+        font-size: 20px;
+        padding: 14px 18px;
+        margin-bottom: 8px;
+        transition: background 0.3s ease;
+        animation: slidein 0.3s ease;
+      }
+      @keyframes slidein {
+        from { opacity: 0; transform: translateX(-16px); }
+        to   { opacity: 1; transform: translateX(0); }
+      }
+      .leaderboard.final li:nth-child(1) { font-size: 24px; background: rgba(255,209,102,0.15); }
+      .leaderboard.final li:nth-child(2) { font-size: 22px; }
+      .leaderboard.final li:nth-child(3) { font-size: 21px; }
+      #liveStatus { text-align: center; margin-top: 18px; font-size: 13px; color: var(--muted); }
+      .pulse { animation: pulse 1.5s infinite; }
+      @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    </style>
+  </head>
+  <body>
+    <header class="bar">
+      <span class="logo small">⚡ QuizBlitz · Leaderboard</span>
+      <span id="status" class="pill">Connecting…</span>
+    </header>
+
+    <main id="app">
+      <!-- Join by code (fallback if no ?room= param) -->
+      <section id="step-join" class="card">
+        <h1>Big Screen Display</h1>
+        <p>Enter the room code to show live standings.</p>
+        <form id="joinForm">
+          <input type="text" id="roomInput" placeholder="ROOM CODE" maxlength="6" autocomplete="off" />
+          <button type="submit" class="primary">Connect</button>
+        </form>
+        <div id="joinMsg" class="msg" style="margin-top:10px;"></div>
+      </section>
+
+      <!-- Live leaderboard -->
+      <section id="step-live" class="card hidden">
+        <h1 id="lbTitle">🏆 Leaderboard</h1>
+        <p class="subtitle" id="lbSubtitle"></p>
+        <ol id="lbList" class="leaderboard"></ol>
+        <div id="liveStatus"><span class="pulse">●</span> Live</div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/leaderboard.js"></script>
+  </body>
+</html>

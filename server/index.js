@@ -15,7 +15,7 @@ const { Server } = require('socket.io');
 const { parseDocxBuffer } = require('./parser');
 
 const PORT = process.env.PORT || 3000;
-const QUESTION_DURATION_MS = 20_000;
+const DEFAULT_QUESTION_DURATION_MS = 20_000;
 const MAX_PLAYERS_PER_ROOM = 500;
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LEN = 6;
@@ -47,6 +47,10 @@ function makeRoomCode() {
     }
   } while (rooms.has(code));
   return code;
+}
+
+function questionDurationMs(q) {
+  return (q.durationSec ?? 20) * 1000;
 }
 
 function publicQuestion(q) {
@@ -88,6 +92,7 @@ function endQuestion(room) {
     });
   }
 
+  const lb = leaderboard(room);
   io.to(room.hostSocketId).emit('reveal', {
     questionId: q.id,
     correctIndex: q.correctIndex,
@@ -101,8 +106,10 @@ function endQuestion(room) {
     ).length,
     totalAnswered: Array.from(room.players.values()).filter((p) => p.answers[room.currentIndex])
       .length,
-    leaderboard: leaderboard(room),
+    leaderboard: lb,
   });
+  // push live standings to big-screen display
+  io.to(`display:${room.code}`).emit('leaderboard:update', { leaderboard: lb, final: false });
 }
 
 function startQuestion(room) {
@@ -114,19 +121,24 @@ function startQuestion(room) {
   room.state = 'question';
   room.questionStart = Date.now();
 
+  const durationMs = questionDurationMs(q);
   io.to(room.code).emit('question', {
     index: room.currentIndex,
     total: room.questions.length,
-    durationMs: QUESTION_DURATION_MS,
+    durationMs,
     ...publicQuestion(q),
   });
 
-  room.questionTimer = setTimeout(() => endQuestion(room), QUESTION_DURATION_MS);
+  room.currentDurationMs = durationMs;
+  room.questionTimer = setTimeout(() => endQuestion(room), durationMs);
 }
 
 function finishGame(room) {
   room.state = 'finished';
-  io.to(room.code).emit('finished', { leaderboard: leaderboard(room) });
+  const lb = leaderboard(room);
+  io.to(room.code).emit('finished', { leaderboard: lb });
+  // also push to big-screen display channel
+  io.to(`display:${room.code}`).emit('leaderboard:update', { leaderboard: lb, final: true });
 }
 
 function nextQuestion(room) {
@@ -180,6 +192,7 @@ io.on('connection', (socket) => {
       currentIndex: -1,
       questionStart: 0,
       questionTimer: null,
+      currentDurationMs: DEFAULT_QUESTION_DURATION_MS,
     };
     rooms.set(code, room);
     socket.join(code);
@@ -210,6 +223,26 @@ io.on('connection', (socket) => {
     if (!room || room.hostSocketId !== socket.id) return ack?.({ ok: false, error: 'Not host' });
     if (room.state === 'question') endQuestion(room);
     ack?.({ ok: true });
+  });
+
+  socket.on('host:end', (_payload, ack) => {
+    const room = rooms.get(socket.data.roomCode);
+    if (!room || room.hostSocketId !== socket.id) return ack?.({ ok: false, error: 'Not host' });
+    if (room.state === 'finished') return ack?.({ ok: true });
+    if (room.questionTimer) { clearTimeout(room.questionTimer); room.questionTimer = null; }
+    finishGame(room);
+    ack?.({ ok: true });
+  });
+
+  socket.on('display:join', ({ code } = {}, ack) => {
+    code = (code || '').toUpperCase().trim();
+    const room = rooms.get(code);
+    if (!room) return ack?.({ ok: false, error: 'Room not found' });
+    socket.join(`display:${code}`);
+    socket.data.role = 'display';
+    socket.data.roomCode = code;
+    // send current standings immediately
+    ack?.({ ok: true, leaderboard: leaderboard(room), state: room.state });
   });
 
   socket.on('player:join', ({ code, name } = {}, ack) => {
@@ -249,8 +282,9 @@ io.on('connection', (socket) => {
     const q = room.questions[index];
     const elapsed = Date.now() - room.questionStart;
     const correct = choice === q.correctIndex;
+    const durationMs = room.currentDurationMs || DEFAULT_QUESTION_DURATION_MS;
     const gained = correct
-      ? Math.max(500, Math.round(1000 - (500 * elapsed) / QUESTION_DURATION_MS))
+      ? Math.max(500, Math.round(1000 - (500 * elapsed) / durationMs))
       : 0;
 
     player.answers[index] = { choice, correct, gained, elapsedMs: elapsed };
