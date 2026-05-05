@@ -6,5 +6,7 @@ server/node_modules
 .env.local
 README.md
 Dockerfile
+Dockerfile.railway
 .dockerignore
 kitt.yml
+server/.npmrc

@@ -1,76 +1,51 @@
-# WCNP deployment config for QuizBlitz
+# WCNP / KITT deployment config for QuizBlitz
 # Docs: https://dx.walmart.com/documents/product/KITT
-# Replace <YOUR_NAMESPACE> and <YOUR_IMAGE_REPO> before deploying.
+#
+# Replace every value marked <REPLACE_*> before your first deploy.
+# Minimum fields required by KITT Quick Start are all present below.
 
-spec:
-  # --- App identity ---
-  appName: quizblitz
-  team: <YOUR_TEAM_NAME>
-  namespace: <YOUR_NAMESPACE>            # e.g. myteam-dev / myteam-prod
+build:
+  artifact: quizblitz                       # Looper build artifact name
 
-  # --- Container image ---
-  # Build via Looper and push to your Walmart Artifactory Docker repo
-  image: <YOUR_IMAGE_REPO>/quizblitz     # e.g. docker.ci.artifacts.walmart.com/myteam/quizblitz
+deploy:
+  namespace: project-backbone           # e.g. myteam-dev or project-quizblitz
+  helm:
+    values:
+      scaling:
+        enabled: false
+        replicas: 1
+      networking:
+        externalPort: 3000
+      env:
+        APP_NAME: quiz-blitz
+        PORT: "3000"
+        WM_ENV: "{{$.kittExec.currentStage.name}}"
+        APP_VERSION: "{{$.kitt.build.version}}"
+      resources:
+        requests:
+          cpu: 250m
+          memory: 256Mi
+        limits:
+          cpu: "1"
+          memory: 512Mi
+      scaling:
+        enabled: true
+        cpuPercent: 60
+        min: 2
+        max: 10
+  stages:
+    - name: dev
+      refs: [main]
+      target:
+        - cluster_id: [scus-dev-a4]   # e.g. uswest-stage-az-001
 
-  # --- Replicas & scaling ---
-  replicas: 2                            # minimum 2 for HA
-  autoscaling:
-    enabled: true
-    minReplicas: 2
-    maxReplicas: 10
-    targetCPUUtilizationPercentage: 60   # scale out earlier for WebSocket bursts
+notify:
+  slack:
+    channelName: quiz-blitz    # e.g. quizblitz-deploys
 
-  # --- Resources ---
-  resources:
-    requests:
-      cpu: "250m"
-      memory: "256Mi"
-    limits:
-      cpu: "1000m"
-      memory: "512Mi"
+owner:
+  group: project-backbone              # e.g. sec-project-quizblitz
 
-  # --- Container port ---
-  containerPort: 3000
-
-  # --- Health checks ---
-  livenessProbe:
-    httpGet:
-      path: /health
-      port: 3000
-    initialDelaySeconds: 15
-    periodSeconds: 20
-
-  readinessProbe:
-    httpGet:
-      path: /health
-      port: 3000
-    initialDelaySeconds: 10
-    periodSeconds: 10
-
-  # --- Environment ---
-  env:
-    - name: NODE_ENV
-      value: "production"
-    - name: PORT
-      value: "3000"
-
-  # --- Ingress (internal Walmart network only) ---
-  ingress:
-    enabled: true
-    host: quizblitz.<YOUR_NAMESPACE>.walmart.com   # update per your WCNP cluster domain
-    annotations:
-      kubernetes.io/ingress.class: "nginx"
-
-  # --- WebSocket: disable proxy buffering so Socket.io works ---
-  # Add these annotations if using WCNP's nginx ingress controller
-  ingressAnnotations:
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-buffering: "off"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection "upgrade";
-
-  # --- Cloud placement ---
-  # Use Azure or GCP for elastic WebSocket workloads (not private cloud)
-  cloud: azure                           # or: gcp
+alerts:
+  slackChannel:
+    - quiz-blitz             # e.g. quizblitz-alerts
