@@ -90,6 +90,8 @@ function endQuestion(room) {
     }
   }
 
+  const fastest = room.fastestPerQ[idx] || null;
+
   for (const player of room.players.values()) {
     const ans = player.answers[idx];
     io.to(player.socketId).emit('reveal', {
@@ -101,6 +103,7 @@ function endQuestion(room) {
       bonus: ans?.bonus ?? 0,
       streak: player.streak,
       score: player.score,
+      fastest,
     });
   }
 
@@ -109,7 +112,6 @@ function endQuestion(room) {
   );
   const correctCount = Array.from(room.players.values()).filter((p) => p.answers[idx]?.correct).length;
   const totalAnswered = Array.from(room.players.values()).filter((p) => p.answers[idx]).length;
-  const fastest = room.fastestPerQ[idx] || null;
 
   const lb = leaderboard(room);
   io.to(room.hostSocketId).emit('reveal', {

@@ -240,6 +240,21 @@
       soundWrong();
     }
     $('revealDetail').textContent = `Correct answer: "${correctText}".${data.yourAnswer != null && !data.correct ? ` You chose: "${yourText}".` : ''}`;
+
+    // Fastest answer callout
+    const fastestEl = $('revealFastest');
+    if (fastestEl) {
+      if (data.fastest) {
+        const secs = (data.fastest.ms / 1000).toFixed(1);
+        const isMe = data.fastest.name === name;
+        fastestEl.innerHTML = isMe
+          ? `⚡ <strong>You</strong> were the fastest! (${secs}s)`
+          : `⚡ Fastest: <strong>${escapeHtml(data.fastest.name)}</strong> (${secs}s)`;
+        fastestEl.classList.remove('hidden');
+      } else {
+        fastestEl.classList.add('hidden');
+      }
+    }
     $('revealScore').textContent = data.score;
 
     history.push({
