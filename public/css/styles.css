@@ -128,7 +128,10 @@ button:not(:disabled):hover { transform: translateY(-1px); }
 
 /* question */
 .qmeta { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 14px; margin-bottom: 6px; }
-.timer { font-size: 28px; font-weight: 800; color: var(--accent); }
+.timer { font-size: 28px; font-weight: 800; color: var(--accent); transition: color 0.3s ease; }
+.timer.warning { color: #ffd166; }
+.timer.critical { color: var(--bad); animation: timer-pulse 0.5s ease-in-out infinite; }
+@keyframes timer-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 .qfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; color: var(--muted); }
 #qStatus.pill { transition: background 0.2s; }
 #qStatus.pill:empty { display: none; }
@@ -153,7 +156,16 @@ button:not(:disabled):hover { transform: translateY(-1px); }
 .options li[data-letter='E'] { background: var(--o-e); }
 .options li[data-letter='F'] { background: var(--o-f); }
 .options li.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
-.options li.locked { border-color: #fff; outline: 3px solid rgba(255,255,255,0.6); }
+.options li.locked {
+  border-color: #fff; outline: 3px solid rgba(255,255,255,0.6);
+  animation: lock-pop 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+@keyframes lock-pop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.06); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1); }
+}
 .options li.correct { border-color: var(--good); box-shadow: 0 0 0 4px rgba(6,214,160,0.4); }
 .options li.wrong { opacity: 0.35; }
 .options li .letter {

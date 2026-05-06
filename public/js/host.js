@@ -219,16 +219,23 @@
   function startCountdown(seconds) {
     stopCountdown();
     let s = seconds;
-    $('qTimer').textContent = s;
+    const el = $('qTimer');
+    el.textContent = s;
+    el.classList.remove('warning', 'critical');
     countdownTimer = setInterval(() => {
       s = Math.max(0, s - 1);
-      $('qTimer').textContent = s;
+      el.textContent = s;
+      el.classList.remove('warning', 'critical');
+      if (s <= 3) el.classList.add('critical');
+      else if (s <= 10) el.classList.add('warning');
       if (s === 0) stopCountdown();
     }, 1000);
   }
   function stopCountdown() {
     clearInterval(countdownTimer);
     countdownTimer = null;
+    const el = $('qTimer');
+    if (el) el.classList.remove('warning', 'critical');
   }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) =>

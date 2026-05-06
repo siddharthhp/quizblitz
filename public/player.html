@@ -54,7 +54,8 @@
       <section id="step-reveal" class="card hidden">
         <h1 id="revealHeadline">…</h1>
         <p id="revealDetail" class="msg"></p>
-        <p>Score: <strong id="revealScore">0</strong></p>
+        <p id="revealPoints" style="font-size:22px;font-weight:700;margin:8px 0 4px;"></p>
+        <p style="color:var(--muted);font-size:14px;">Total score: <strong id="revealScore" style="color:var(--fg);">0</strong></p>
       </section>
 
       <section id="step-finished" class="card hidden">
@@ -69,6 +70,7 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="/js/player.js"></script>
   </body>
 </html>
