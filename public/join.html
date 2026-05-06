@@ -21,13 +21,18 @@
         font-size: 22px; color: var(--muted); margin-bottom: 30px;
         word-break: break-all;
       }
-      #qrCanvas {
+      #qrContainer {
         border-radius: 16px;
         padding: 16px;
         background: #fff;
-        display: block;
+        display: inline-block;
         margin: 0 auto 24px;
         box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        line-height: 0;
+      }
+      #qrContainer img, #qrContainer canvas {
+        display: block;
+        border-radius: 8px;
       }
       .scan-label {
         font-size: 20px; color: var(--muted);
@@ -44,7 +49,8 @@
         #step-join h1 { font-size: 52px; }
         .join-code { font-size: 140px; }
         .join-url { font-size: 28px; }
-        #qrCanvas { width: 340px !important; height: 340px !important; }
+        #qrContainer { padding: 20px; }
+        #qrContainer img, #qrContainer canvas { width: 340px !important; height: 340px !important; }
         .scan-label { font-size: 26px; }
         #playerCount { font-size: 24px; }
       }
@@ -61,7 +67,7 @@
         <h1>Scan to join!</h1>
         <div id="joinCode" class="join-code">------</div>
         <p class="join-url" id="joinUrl"></p>
-        <canvas id="qrCanvas" width="260" height="260"></canvas>
+        <div id="qrContainer"></div>
         <p class="scan-label">📱 Scan the QR code or go to</p>
         <p style="font-size:20px;font-weight:700;color:var(--accent);" id="siteUrl"></p>
         <p id="playerCount"><span id="count">0</span> players joined</p>
@@ -75,7 +81,7 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
     (() => {
       const $ = (id) => document.getElementById(id);
@@ -93,17 +99,18 @@
       $('joinUrl').textContent = location.origin;
       $('siteUrl').textContent = location.host;
 
-      // Generate QR code
-      QRCode.toCanvas($('qrCanvas'), joinDeeplink, {
-        width: 260,
-        margin: 2,
-        color: { dark: '#1a1638', light: '#ffffff' },
-        errorCorrectionLevel: 'M',
-      }, (err) => {
-        if (err) console.error('QR generation error', err);
-      });
-
       show('step-join');
+
+      // Generate QR code — qrcodejs uses a div container, not a canvas
+      const qrContainer = $('qrContainer');
+      new QRCode(qrContainer, {
+        text: joinDeeplink,
+        width: 260,
+        height: 260,
+        colorDark: '#1a1638',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M,
+      });
 
       // Connect socket to display channel to get live player count
       const socket = io();
