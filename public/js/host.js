@@ -159,16 +159,11 @@
       li.innerHTML = `<span class="letter">${li.dataset.letter}</span><span>${escapeHtml(text)}</span>`;
       list.appendChild(li);
     });
-    $('answeredCount').textContent = `0 / ? answered`;
     show('step-question');
     startCountdown(Math.round(durationMs / 1000));
   });
 
-  socket.on('answer:tick', ({ answered, total }) => {
-    $('answeredCount').textContent = `${answered} / ${total} answered`;
-  });
-
-  $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
+$('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
 
   function endQuiz() {
     if (!confirm('End the quiz now? This will show final standings to all players.')) return;
@@ -209,13 +204,6 @@
       }
     }
 
-    const lb = $('leaderboard');
-    lb.innerHTML = '';
-    data.leaderboard.forEach((p) => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
-      lb.appendChild(li);
-    });
     setStatus('Reveal');
     show('step-reveal');
   });
