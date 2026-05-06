@@ -1,5 +1,5 @@
 {
-  "name": "quizblitz-server",
+  "name": "retailblitz-server",
   "version": "1.0.0",
   "description": "Realtime quiz backend (Kahoot-style) with Socket.io",
   "main": "index.js",

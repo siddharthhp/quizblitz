@@ -1,4 +1,4 @@
-// QuizBlitz realtime server.
+// RetailBlitz realtime server.
 // One Node process holds many "rooms" (one per host). Each room has:
 //   - a 6-char join code
 //   - parsed questions
@@ -322,5 +322,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`QuizBlitz listening on :${PORT}`);
+  console.log(`RetailBlitz listening on :${PORT}`);
 });

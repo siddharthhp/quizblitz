@@ -68,7 +68,7 @@ function buildParagraphs() {
 
   paras.push(
     new Paragraph({
-      children: [new TextRun({ text: 'QuizBlitz Sample Questions', bold: true, size: 36 })],
+      children: [new TextRun({ text: 'RetailBlitz Sample Questions', bold: true, size: 36 })],
       heading: HeadingLevel.HEADING_1,
       spacing: { after: 200 },
     }),
