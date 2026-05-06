@@ -19,19 +19,23 @@
         <p>Drop a <strong>.docx</strong> with your questions. Two formats supported:</p>
         <details>
           <summary>Format examples</summary>
-          <pre>Prose:
+          <pre>Prose (recommended):
 Q: What is the capital of France? (15)
 A) London
-B) Paris ✓
+B) Paris
 C) Berlin
 D) Rome
+Answer: B
+
+Legacy tick mark also works:
+B) Paris ✓
 
 Table: header row must be
 | Question | A | B | C | D | Answer |
-where Answer is the letter of the correct option.
+where Answer column holds the correct letter (A/B/C/D).
 
-Timer: add (N) or (Ns) at the end of the question text, e.g. "Question text (30)"
-Defaults to 20 seconds if omitted.</pre>
+Timer: add (N) in seconds at end of question, e.g. "Question? (30)"
+Defaults to 20s if omitted. Min 5s, max 120s.</pre>
         </details>
         <form id="uploadForm">
           <label id="fileLabel" class="file-drop" for="file">
@@ -67,7 +71,10 @@ Defaults to 20 seconds if omitted.</pre>
       <section id="step-question" class="card hidden">
         <div class="qmeta">
           <span id="qIndex">Q 1 / 1</span>
-          <span id="qTimer" class="timer">20</span>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <a id="displayUrlQ" href="#" target="_blank" class="dim" style="font-size:12px;color:var(--accent);text-decoration:none;" title="Open big-screen leaderboard">📺 Big screen</a>
+            <span id="qTimer" class="timer">20</span>
+          </div>
         </div>
         <h1 id="qText">…</h1>
         <ul id="qOptions" class="options host-options"></ul>
@@ -82,7 +89,10 @@ Defaults to 20 seconds if omitted.</pre>
 
       <!-- Step 4: reveal -->
       <section id="step-reveal" class="card hidden">
-        <h1>Results</h1>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <h1 style="margin:0;">Results</h1>
+          <a id="displayUrlR" href="#" target="_blank" style="font-size:13px;color:var(--accent);text-decoration:none;">📺 Big screen</a>
+        </div>
         <ul id="revealOptions" class="options host-options"></ul>
         <h2>Leaderboard</h2>
         <ol id="leaderboard" class="leaderboard"></ol>
@@ -96,7 +106,10 @@ Defaults to 20 seconds if omitted.</pre>
       <section id="step-finished" class="card hidden">
         <h1>🏆 Final standings</h1>
         <ol id="finalBoard" class="leaderboard final"></ol>
-        <a class="ghost" href="/host.html">Host another</a>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+          <a id="displayUrlF" href="#" target="_blank" class="ghost">📺 Open leaderboard</a>
+          <a class="ghost" href="/host.html">Host another</a>
+        </div>
       </section>
     </main>
 

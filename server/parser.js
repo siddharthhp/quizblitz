@@ -1,11 +1,14 @@
 // Parses uploaded .docx into a normalized question array.
 // Supports two author formats:
 //   FORMAT A (prose):
-//       Q: <question text>
+//       Q: <question text> (30)         <-- optional timer in seconds
 //       A) option 1
-//       B) option 2 ✓        <-- correct option marked with ✓ or *
+//       B) option 2
 //       C) option 3
 //       D) option 4
+//       Answer: B                       <-- preferred: explicit answer line
+//   OR mark correct inline:
+//       B) option 2 ✓                   <-- legacy tick-mark still works
 //
 //   FORMAT B (table):  one row per question
 //       | Question | A | B | C | D | Answer |
@@ -44,14 +47,18 @@ function cleanOption(text) {
 const DEFAULT_DURATION_SEC = 20;
 
 /** Extract optional trailing (N) or (Ns) timer hint from question text.
- *  Returns { question, durationSec } */
+ *  Clamps to [5, 120] seconds. Returns { question, durationSec } */
 function extractDuration(text) {
   const m = text.match(/^(.*)\(\s*(\d+)\s*s?\s*\)\s*$/);
   if (m) {
-    return { question: m[1].trim(), durationSec: parseInt(m[2], 10) };
+    const raw = parseInt(m[2], 10);
+    return { question: m[1].trim(), durationSec: Math.max(5, Math.min(120, raw)) };
   }
   return { question: text, durationSec: DEFAULT_DURATION_SEC };
 }
+
+/** Matches an explicit answer line: "Answer: B", "Ans: B", "Correct: B", "Correct answer: B" */
+const answerLineRe = /^(?:answer|ans|correct(?:\s+answer)?)\s*[:.\-]\s*([A-Fa-f])\b/i;
 
 function parseProse(rawText) {
   const lines = rawText
@@ -74,6 +81,16 @@ function parseProse(rawText) {
   };
 
   for (const line of lines) {
+    // Check answer line BEFORE option regex — "Answer: B" must not be treated as option B
+    const ansMatch = line.match(answerLineRe);
+    if (ansMatch && current && current.options.length >= 2) {
+      const idx = LETTERS.indexOf(ansMatch[1].toUpperCase());
+      if (idx >= 0 && idx < current.options.length) {
+        current.correctIndex = idx; // explicit answer wins over tick marks
+      }
+      continue;
+    }
+
     const qMatch = line.match(questionRe);
     const oMatch = line.match(optionRe);
 
@@ -87,7 +104,10 @@ function parseProse(rawText) {
     if (oMatch && current) {
       const isCorrect = isCorrectMarker(line);
       current.options.push(cleanOption(oMatch[2]));
-      if (isCorrect) current.correctIndex = current.options.length - 1;
+      if (isCorrect && current.correctIndex === -1) {
+        // Only set from tick if no explicit Answer: line seen yet
+        current.correctIndex = current.options.length - 1;
+      }
       continue;
     }
 

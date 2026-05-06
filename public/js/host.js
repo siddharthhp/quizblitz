@@ -8,6 +8,18 @@
 
   const socket = io();
   let countdownTimer = null;
+  let roomCode = null;
+
+  function setDisplayLinks(code) {
+    roomCode = code;
+    const url = `/leaderboard.html?room=${code}`;
+    ['displayUrl', 'displayUrlQ', 'displayUrlR', 'displayUrlF'].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.href = url;
+      if (id === 'displayUrl') el.textContent = `${location.origin}${url}`;
+    });
+  }
 
   // ---- File picker UX ----
   const fileInput = $('file');
@@ -91,9 +103,7 @@
         $('roomCode').textContent = ack.code;
         $('joinUrl').textContent = `${location.origin}  ·  code: ${ack.code}`;
         $('questionTotal').textContent = ack.total;
-        const displayLink = $('displayUrl');
-        displayLink.href = `/leaderboard.html?room=${ack.code}`;
-        displayLink.textContent = `${location.origin}/leaderboard.html?room=${ack.code}`;
+        setDisplayLinks(ack.code);
         setStatus('Lobby');
         show('step-lobby');
       });
