@@ -34,6 +34,36 @@
       .pulse { animation: pulse 1.5s infinite; }
       @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 
+      /* Vote chart */
+      #step-votes { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; }
+      #step-live.card { border-top-left-radius: 0; border-top-right-radius: 0; border-top: none; margin-top: 0; }
+      .vote-row {
+        display: flex; align-items: center; gap: 10px;
+        margin-bottom: 10px;
+      }
+      .vote-letter {
+        width: 32px; height: 32px; flex-shrink: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 8px; font-weight: 800; font-size: 14px; color: #fff;
+      }
+      .vote-bar-track {
+        flex: 1; background: rgba(255,255,255,0.08);
+        border-radius: 6px; height: 24px; overflow: hidden;
+      }
+      .vote-bar {
+        height: 100%; border-radius: 6px;
+        transition: width 0.7s cubic-bezier(0.34,1.2,0.64,1);
+        min-width: 4px;
+      }
+      .vote-row.correct .vote-bar-track { box-shadow: 0 0 0 2px rgba(6,214,160,0.5); }
+      .vote-pct { font-weight: 700; font-size: 15px; min-width: 38px; text-align: right; }
+      .vote-count { font-size: 13px; color: var(--muted); min-width: 32px; }
+      .fastest-callout {
+        padding: 8px 14px; border-radius: 10px;
+        background: rgba(255,209,102,0.15); color: var(--accent);
+        font-size: 15px; font-weight: 600;
+      }
+
       /* Big-screen / projector scaling */
       @media (min-width: 1200px) {
         main { max-width: 100%; padding: 32px 80px 60px; }
@@ -48,6 +78,12 @@
         .leaderboard li:nth-child(2)::before,
         .leaderboard li:nth-child(3)::before { font-size: 30px; }
         #liveStatus { font-size: 18px; }
+        .vote-letter { width: 42px; height: 42px; font-size: 18px; border-radius: 10px; }
+        .vote-bar-track { height: 34px; }
+        .vote-pct { font-size: 20px; min-width: 52px; }
+        .vote-count { font-size: 17px; }
+        .fastest-callout { font-size: 20px; padding: 12px 18px; }
+        #step-votes h2 { font-size: 30px; }
       }
     </style>
   </head>
@@ -69,9 +105,19 @@
         <div id="joinMsg" class="msg" style="margin-top:10px;"></div>
       </section>
 
+      <!-- Vote distribution chart (shown after each question reveal) -->
+      <section id="step-votes" class="card hidden">
+        <h2 style="margin-top:0;font-size:20px;color:var(--fg);">📊 Vote Distribution</h2>
+        <div id="voteBars"></div>
+        <div id="fastestDisplay" style="margin-top:10px;"></div>
+      </section>
+
       <!-- Live leaderboard -->
       <section id="step-live" class="card hidden">
-        <h1 id="lbTitle">🏆 Leaderboard</h1>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <h1 id="lbTitle" style="margin-bottom:4px;">🏆 Leaderboard</h1>
+          <span id="lobbyPlayerCount" class="hidden" style="font-size:14px;color:var(--muted);"></span>
+        </div>
         <p class="subtitle" id="lbSubtitle"></p>
         <ol id="lbList" class="leaderboard"></ol>
         <div id="liveStatus"><span class="pulse">●</span> Live</div>
@@ -79,6 +125,7 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script src="/js/leaderboard.js"></script>
   </body>
 </html>

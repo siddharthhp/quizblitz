@@ -69,7 +69,9 @@ function broadcastRoster(room) {
     name: p.name,
     score: p.score,
   }));
-  io.to(room.hostSocketId).emit('roster', { players });
+  // Emit to entire room (host + players) and display channel
+  io.to(room.code).emit('roster', { players });
+  io.to(`display:${room.code}`).emit('roster', { players });
 }
 
 function endQuestion(room) {
@@ -79,37 +81,55 @@ function endQuestion(room) {
   room.state = 'reveal';
 
   const q = room.questions[room.currentIndex];
+  const idx = room.currentIndex;
+
+  // Reset streak for players who didn't answer this question
+  for (const player of room.players.values()) {
+    if (!player.answers[idx]) {
+      player.streak = 0;
+    }
+  }
 
   for (const player of room.players.values()) {
-    const ans = player.answers[room.currentIndex];
+    const ans = player.answers[idx];
     io.to(player.socketId).emit('reveal', {
       questionId: q.id,
       correctIndex: q.correctIndex,
       yourAnswer: ans ? ans.choice : null,
       correct: !!ans?.correct,
       gained: ans?.gained ?? 0,
+      bonus: ans?.bonus ?? 0,
+      streak: player.streak,
       score: player.score,
     });
   }
+
+  const counts = q.options.map((_, i) =>
+    Array.from(room.players.values()).filter((p) => p.answers[idx]?.choice === i).length,
+  );
+  const correctCount = Array.from(room.players.values()).filter((p) => p.answers[idx]?.correct).length;
+  const totalAnswered = Array.from(room.players.values()).filter((p) => p.answers[idx]).length;
+  const fastest = room.fastestPerQ[idx] || null;
 
   const lb = leaderboard(room);
   io.to(room.hostSocketId).emit('reveal', {
     questionId: q.id,
     correctIndex: q.correctIndex,
-    counts: q.options.map((_, idx) =>
-      Array.from(room.players.values()).filter(
-        (p) => p.answers[room.currentIndex]?.choice === idx,
-      ).length,
-    ),
-    correctCount: Array.from(room.players.values()).filter(
-      (p) => p.answers[room.currentIndex]?.correct,
-    ).length,
-    totalAnswered: Array.from(room.players.values()).filter((p) => p.answers[room.currentIndex])
-      .length,
+    counts,
+    correctCount,
+    totalAnswered,
     leaderboard: lb,
+    fastest,
   });
-  // push live standings to big-screen display
+  // push live standings + vote stats to big-screen display
   io.to(`display:${room.code}`).emit('leaderboard:update', { leaderboard: lb, final: false });
+  io.to(`display:${room.code}`).emit('reveal:stats', {
+    counts,
+    correctIndex: q.correctIndex,
+    options: q.options,
+    fastest,
+    totalAnswered,
+  });
 }
 
 function startQuestion(room) {
@@ -193,6 +213,7 @@ io.on('connection', (socket) => {
       questionStart: 0,
       questionTimer: null,
       currentDurationMs: DEFAULT_QUESTION_DURATION_MS,
+      fastestPerQ: [], // { name, ms } per question index
     };
     rooms.set(code, room);
     socket.join(code);
@@ -241,8 +262,14 @@ io.on('connection', (socket) => {
     socket.join(`display:${code}`);
     socket.data.role = 'display';
     socket.data.roomCode = code;
-    // send current standings immediately
-    ack?.({ ok: true, leaderboard: leaderboard(room), state: room.state });
+    const players = Array.from(room.players.values()).map((p) => ({ name: p.name, score: p.score }));
+    ack?.({
+      ok: true,
+      leaderboard: leaderboard(room),
+      state: room.state,
+      players,
+      currentIndex: room.currentIndex,
+    });
   });
 
   socket.on('player:join', ({ code, name } = {}, ack) => {
@@ -263,6 +290,8 @@ io.on('connection', (socket) => {
       name,
       score: 0,
       answers: [],
+      streak: 0,        // consecutive correct answers
+      maxStreak: 0,
     });
     socket.join(code);
     socket.data.role = 'player';
@@ -287,8 +316,27 @@ io.on('connection', (socket) => {
       ? Math.max(500, Math.round(1000 - (500 * elapsed) / durationMs))
       : 0;
 
-    player.answers[index] = { choice, correct, gained, elapsedMs: elapsed };
-    player.score += gained;
+    // Streak tracking — award bonus on 3rd and 5th consecutive correct
+    let bonus = 0;
+    if (correct) {
+      player.streak += 1;
+      if (player.streak > player.maxStreak) player.maxStreak = player.streak;
+      if (player.streak === 3) bonus = 200;
+      else if (player.streak === 5) bonus = 500;
+    } else {
+      player.streak = 0;
+    }
+
+    // Track fastest correct answer per question
+    if (correct) {
+      const existing = room.fastestPerQ[index];
+      if (!existing || elapsed < existing.ms) {
+        room.fastestPerQ[index] = { name: player.name, ms: elapsed };
+      }
+    }
+
+    player.answers[index] = { choice, correct, gained, bonus, elapsedMs: elapsed };
+    player.score += gained + bonus;
 
     ack?.({ ok: true, locked: true });
 

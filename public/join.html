@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RetailBlitz — Join</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      body { overflow: hidden; }
+      main { max-width: 680px; text-align: center; margin-top: 40px; }
+      #step-join { text-align: center; }
+      #step-join h1 { font-size: 36px; margin-bottom: 6px; }
+
+      .join-code {
+        font-size: 96px; letter-spacing: 0.18em; font-weight: 900;
+        margin: 10px 0 6px;
+        background: linear-gradient(90deg, #06d6a0, #118ab2, #c77dff);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .join-url {
+        font-size: 22px; color: var(--muted); margin-bottom: 30px;
+        word-break: break-all;
+      }
+      #qrCanvas {
+        border-radius: 16px;
+        padding: 16px;
+        background: #fff;
+        display: block;
+        margin: 0 auto 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      }
+      .scan-label {
+        font-size: 20px; color: var(--muted);
+        margin-bottom: 6px;
+      }
+      #playerCount {
+        font-size: 18px; color: var(--fg); margin-top: 12px;
+      }
+      #playerCount span { color: var(--accent); font-weight: 700; }
+
+      /* Big-screen projector scaling */
+      @media (min-width: 1200px) {
+        main { max-width: 100%; padding: 40px 100px; }
+        #step-join h1 { font-size: 52px; }
+        .join-code { font-size: 140px; }
+        .join-url { font-size: 28px; }
+        #qrCanvas { width: 340px !important; height: 340px !important; }
+        .scan-label { font-size: 26px; }
+        #playerCount { font-size: 24px; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="bar">
+      <span class="logo small">⚡ RetailBlitz · Join</span>
+      <span id="statusPill" class="pill">Waiting…</span>
+    </header>
+
+    <main id="app">
+      <section id="step-join" class="card">
+        <h1>Scan to join!</h1>
+        <div id="joinCode" class="join-code">------</div>
+        <p class="join-url" id="joinUrl"></p>
+        <canvas id="qrCanvas" width="260" height="260"></canvas>
+        <p class="scan-label">📱 Scan the QR code or go to</p>
+        <p style="font-size:20px;font-weight:700;color:var(--accent);" id="siteUrl"></p>
+        <p id="playerCount"><span id="count">0</span> players joined</p>
+      </section>
+
+      <section id="step-noroom" class="card hidden">
+        <h1>No room code</h1>
+        <p>Open this page with a <code>?room=XXXX</code> URL parameter.</p>
+        <p>Example: <code>/join.html?room=ABC123</code></p>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+    (() => {
+      const $ = (id) => document.getElementById(id);
+      const show = (id) => {
+        document.querySelectorAll('main > section').forEach((s) => s.classList.add('hidden'));
+        $(id).classList.remove('hidden');
+      };
+
+      const params = new URLSearchParams(location.search);
+      const room = (params.get('room') || '').toUpperCase().trim();
+      if (!room) { show('step-noroom'); return; }
+
+      const joinDeeplink = `${location.origin}/?code=${room}`;
+      $('joinCode').textContent = room;
+      $('joinUrl').textContent = location.origin;
+      $('siteUrl').textContent = location.host;
+
+      // Generate QR code
+      QRCode.toCanvas($('qrCanvas'), joinDeeplink, {
+        width: 260,
+        margin: 2,
+        color: { dark: '#1a1638', light: '#ffffff' },
+        errorCorrectionLevel: 'M',
+      }, (err) => {
+        if (err) console.error('QR generation error', err);
+      });
+
+      show('step-join');
+
+      // Connect socket to display channel to get live player count
+      const socket = io();
+      socket.on('connect', () => {
+        socket.emit('display:join', { code: room }, (ack) => {
+          if (!ack?.ok) return;
+          $('count').textContent = (ack.players || []).length;
+          $('statusPill').textContent = 'Live';
+        });
+      });
+
+      socket.on('roster', ({ players }) => {
+        $('count').textContent = players.length;
+      });
+
+      socket.on('disconnect', () => {
+        $('statusPill').textContent = 'Disconnected';
+      });
+    })();
+    </script>
+  </body>
+</html>

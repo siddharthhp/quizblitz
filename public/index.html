@@ -48,6 +48,16 @@
       </section>
     </main>
     <script>
+      // Auto-fill room code from QR deeplink (?code=XXXX)
+      (function () {
+        const params = new URLSearchParams(location.search);
+        const preCode = (params.get('code') || '').toUpperCase().trim();
+        if (preCode) {
+          document.getElementById('code').value = preCode;
+          document.getElementById('name').focus();
+        }
+      })();
+
       document.getElementById('joinForm').addEventListener('submit', (e) => {
         e.preventDefault();
         const code = document.getElementById('code').value.trim().toUpperCase();

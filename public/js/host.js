@@ -12,13 +12,20 @@
 
   function setDisplayLinks(code) {
     roomCode = code;
-    const url = `/leaderboard.html?room=${code}`;
+    const displayUrl = `/leaderboard.html?room=${code}`;
+    const qrUrl = `/join.html?room=${code}`;
     ['displayUrl', 'displayUrlQ', 'displayUrlR', 'displayUrlF'].forEach((id) => {
       const el = $(id);
       if (!el) return;
-      el.href = url;
-      if (id === 'displayUrl') el.textContent = `${location.origin}${url}`;
+      el.href = displayUrl;
+      if (id === 'displayUrl') el.textContent = `${location.origin}${displayUrl}`;
     });
+    // QR join page link in lobby
+    const qrLink = $('qrPageUrl');
+    if (qrLink) {
+      qrLink.href = qrUrl;
+      qrLink.textContent = `${location.origin}${qrUrl}`;
+    }
   }
 
   // ---- File picker UX ----
@@ -116,17 +123,21 @@
     }
   });
 
-  // Lobby
+  // Lobby — live join feed
+  const seenPlayers = new Set();
   socket.on('roster', ({ players }) => {
     $('playerCount').textContent = players.length;
-    const list = $('playerList');
-    list.innerHTML = '';
-    players.forEach((p) => {
-      const li = document.createElement('li');
-      li.textContent = p.name;
-      list.appendChild(li);
-    });
     $('startBtn').disabled = players.length === 0;
+    const list = $('playerList');
+    // Animate newly joined players
+    players.forEach((p) => {
+      if (!seenPlayers.has(p.name)) {
+        seenPlayers.add(p.name);
+        const li = document.createElement('li');
+        li.textContent = p.name;
+        list.prepend(li); // newest at top
+      }
+    });
   });
 
   $('startBtn').addEventListener('click', () => {
@@ -185,6 +196,18 @@
       li.classList.add(i === data.correctIndex ? 'correct' : 'wrong');
       list.appendChild(li);
     });
+
+    // Fastest answer callout
+    const fastestEl = $('fastestCallout');
+    if (fastestEl) {
+      if (data.fastest) {
+        const secs = (data.fastest.ms / 1000).toFixed(1);
+        fastestEl.textContent = `⚡ Fastest: ${data.fastest.name} (${secs}s)`;
+        fastestEl.classList.remove('hidden');
+      } else {
+        fastestEl.classList.add('hidden');
+      }
+    }
 
     const lb = $('leaderboard');
     lb.innerHTML = '';

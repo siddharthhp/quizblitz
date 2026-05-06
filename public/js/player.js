@@ -115,6 +115,12 @@
     });
   });
 
+  // Show live player count in lobby
+  socket.on('roster', ({ players }) => {
+    const el = $('lobbyCount');
+    if (el) el.textContent = players.length;
+  });
+
   // Reconnect handling — show overlay, attempt rejoin
   socket.on('disconnect', () => {
     const s = $('qStatus');
@@ -216,8 +222,14 @@
         : optNodes[data.yourAnswer]?.children[1]?.textContent ?? '?';
 
     if (data.correct) {
+      const bonus = data.bonus || 0;
+      let streakMsg = '';
+      if (bonus > 0) {
+        const streakLabel = data.streak >= 5 ? '🔥🔥 5-streak!' : '🔥 3-streak!';
+        streakMsg = ` <span style="color:var(--accent);font-size:14px;">${streakLabel} +${bonus} bonus</span>`;
+      }
       $('revealHeadline').innerHTML = `<span class="banner ok">✓ CORRECT</span>`;
-      $('revealPoints').innerHTML = `<span style="color:var(--good);">+${data.gained} pts</span>`;
+      $('revealPoints').innerHTML = `<span style="color:var(--good);">+${data.gained} pts</span>${streakMsg}`;
       soundCorrect();
       fireConfetti();
     } else {
