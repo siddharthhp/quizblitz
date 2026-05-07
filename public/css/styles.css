@@ -224,9 +224,8 @@ button:not(:disabled):hover { transform: translateY(-1px); }
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 50%; background: #d0dde8; color: var(--fg); font-weight: 700;
 }
-.leaderboard.final li:nth-child(1)::before { background: var(--spark); color: var(--fg); }
-.leaderboard.final li:nth-child(2)::before { background: #b0bec5; color: var(--fg); }
-.leaderboard.final li:nth-child(3)::before { background: #c8956c; color: #fff; }
+/* Final leaderboard: JS injects medals, hide ::before counter */
+.leaderboard.final li::before { display: none; }
 .leaderboard li .lb-name { flex: 1; font-weight: 600; }
 .leaderboard li .lb-score { font-weight: 700; color: var(--accent); }
 

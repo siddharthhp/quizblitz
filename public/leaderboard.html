@@ -71,10 +71,12 @@
         to   { opacity: 1; transform: translateX(0); }
       }
 
-      /* Medal overrides */
-      .leaderboard li:nth-child(1)::before { content: '🥇'; background: none; font-size: 24px; width: auto; }
-      .leaderboard li:nth-child(2)::before { content: '🥈'; background: none; font-size: 22px; width: auto; }
-      .leaderboard li:nth-child(3)::before { content: '🥉'; background: none; font-size: 20px; width: auto; }
+      /* Medal overrides — only on non-final leaderboard; final uses JS-injected medals */
+      .leaderboard:not(.final) li:nth-child(1)::before { content: '🥇'; background: none; font-size: 24px; width: auto; }
+      .leaderboard:not(.final) li:nth-child(2)::before { content: '🥈'; background: none; font-size: 22px; width: auto; }
+      .leaderboard:not(.final) li:nth-child(3)::before { content: '🥉'; background: none; font-size: 20px; width: auto; }
+      /* Final leaderboard: hide ::before counter, JS handles medals */
+      .leaderboard.final li::before { display: none; }
 
       /* Live pulse */
       #liveStatus {
