@@ -228,6 +228,8 @@ button:not(:disabled):hover { transform: translateY(-1px); }
 .leaderboard.final li::before { display: none; }
 .leaderboard li .lb-name { flex: 1; font-weight: 600; }
 .leaderboard li .lb-score { font-weight: 700; color: var(--accent); }
+.rank-up   { font-size: 13px; font-weight: 800; color: #2e7d32; flex-shrink: 0; }
+.rank-down { font-size: 13px; font-weight: 800; color: #c62828; flex-shrink: 0; }
 
 /* history */
 .history { list-style: decimal inside; padding: 0; }

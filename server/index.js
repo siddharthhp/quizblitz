@@ -246,7 +246,11 @@ io.on('connection', (socket) => {
     if (room.state !== 'lobby') return ack?.({ ok: false, error: 'Already started' });
     if (room.players.size === 0) return ack?.({ ok: false, error: 'No players have joined' });
     room.currentIndex = 0;
-    startQuestion(room);
+    // Broadcast 3-2-1 pre-game countdown, then start first question
+    const COUNTDOWN_SEC = 3;
+    io.to(room.code).emit('pre-question', { seconds: COUNTDOWN_SEC });
+    io.to(`display:${room.code}`).emit('pre-question', { seconds: COUNTDOWN_SEC });
+    setTimeout(() => startQuestion(room), COUNTDOWN_SEC * 1000);
     ack?.({ ok: true });
   });
 

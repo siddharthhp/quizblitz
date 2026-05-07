@@ -156,6 +156,49 @@
     choose(parseInt(li.dataset.idx, 10), li);
   });
 
+  // ---- Pre-game countdown ----
+  let playerOverlayTimer = null;
+  socket.on('pre-question', ({ seconds }) => {
+    let overlay = $('playerCountdownOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'playerCountdownOverlay';
+      overlay.style.cssText = [
+        'position:fixed;inset:0;z-index:999',
+        'display:flex;flex-direction:column;align-items:center;justify-content:center',
+        'background:rgba(4,30,66,0.92)',
+        'color:#fff',
+        'font-family:inherit',
+        'pointer-events:none',
+      ].join(';');
+      overlay.innerHTML = `
+        <div style="font-size:18px;font-weight:700;letter-spacing:0.05em;margin-bottom:12px;opacity:0.85;">GET READY!</div>
+        <div id="playerOverlayCount" style="font-size:100px;font-weight:900;line-height:1;color:#ffc220;text-shadow:0 0 40px rgba(255,194,32,0.6);"></div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    if (playerOverlayTimer) clearInterval(playerOverlayTimer);
+    let s = seconds;
+    const countEl = overlay.querySelector('#playerOverlayCount');
+    overlay.style.display = 'flex';
+    countEl.textContent = s;
+    playerOverlayTimer = setInterval(() => {
+      s -= 1;
+      if (s <= 0) {
+        clearInterval(playerOverlayTimer);
+        playerOverlayTimer = null;
+        overlay.style.display = 'none';
+        return;
+      }
+      countEl.textContent = s;
+      countEl.style.transform = 'scale(1.3)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        countEl.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        countEl.style.transform = 'scale(1)';
+      }));
+    }, 1000);
+  });
+
   // ---- Question received ----
   socket.on('question', ({ index, total, durationMs, question, options }) => {
     currentIndex = index;

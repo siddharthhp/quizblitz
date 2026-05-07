@@ -146,6 +146,50 @@
     });
   });
 
+  // Pre-game countdown overlay
+  let hostOverlayTimer = null;
+  socket.on('pre-question', ({ seconds }) => {
+    let overlay = $('hostCountdownOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'hostCountdownOverlay';
+      overlay.style.cssText = [
+        'position:fixed;inset:0;z-index:999',
+        'display:flex;flex-direction:column;align-items:center;justify-content:center',
+        'background:rgba(4,30,66,0.88)',
+        'backdrop-filter:blur(6px)',
+        'color:#fff',
+        'font-family:inherit',
+        'pointer-events:none',
+      ].join(';');
+      overlay.innerHTML = `
+        <div style="font-size:20px;font-weight:700;letter-spacing:0.05em;margin-bottom:16px;opacity:0.85;">GAME STARTING!</div>
+        <div id="hostOverlayCount" style="font-size:120px;font-weight:900;line-height:1;color:#ffc220;text-shadow:0 0 40px rgba(255,194,32,0.6);"></div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    if (hostOverlayTimer) clearInterval(hostOverlayTimer);
+    let s = seconds;
+    const countEl = overlay.querySelector('#hostOverlayCount');
+    overlay.style.display = 'flex';
+    countEl.textContent = s;
+    hostOverlayTimer = setInterval(() => {
+      s -= 1;
+      if (s <= 0) {
+        clearInterval(hostOverlayTimer);
+        hostOverlayTimer = null;
+        overlay.style.display = 'none';
+        return;
+      }
+      countEl.textContent = s;
+      countEl.style.transform = 'scale(1.3)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        countEl.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        countEl.style.transform = 'scale(1)';
+      }));
+    }, 1000);
+  });
+
   // Question
   socket.on('question', ({ index, total, durationMs, question, options }) => {
     setStatus(`Q ${index + 1} / ${total}`);

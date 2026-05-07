@@ -8,6 +8,7 @@
 
   const socket = io();
   let isFinal = false;
+  let prevRanks = new Map(); // name -> rank (1-based), reset on each display:join
 
   // Auto-join if ?room= param present
   const params = new URLSearchParams(location.search);
@@ -35,6 +36,7 @@
         show('step-join');
         return;
       }
+      prevRanks = new Map(); // reset rank history on fresh join
       setStatus(code);
       // Show player count if still in lobby
       if (ack.state === 'lobby') {
@@ -108,6 +110,10 @@
     if (section) section.classList.add('hidden');
   }
 
+  socket.on('pre-question', ({ seconds }) => {
+    showCountdownOverlay(seconds);
+  });
+
   socket.on('leaderboard:update', ({ leaderboard, final }) => {
     hideVoteChart();
     renderLeaderboard(leaderboard, final);
@@ -136,17 +142,83 @@
     if ($('liveStatus')) {
       $('liveStatus').innerHTML = final
         ? '✅ Final'
-        : '<span class="pulse">●</span> Live';
+        : '<span class="pulse">●</span> LIVE · Walmart Retail Services All Hands 2026';
     }
 
     if (final) return; // podium animation handles rendering
 
+    // Compute rank arrows relative to previous frame
+    const hasBaseline = prevRanks.size > 0;
+    const newRanks = new Map();
+    entries.forEach((p, i) => newRanks.set(p.name, i + 1));
+
     list.innerHTML = '';
-    entries.forEach((p) => {
+    entries.forEach((p, i) => {
       const li = document.createElement('li');
-      li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
+      let arrow = '';
+      if (hasBaseline) {
+        const was = prevRanks.get(p.name);
+        if (was == null) {
+          arrow = ''; // new entrant — no arrow
+        } else if (was > i + 1) {
+          arrow = `<span class="rank-up" title="Up ${was - (i+1)}">↑</span>`;
+        } else if (was < i + 1) {
+          arrow = `<span class="rank-down" title="Down ${(i+1) - was}">↓</span>`;
+        }
+      }
+      li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}</span>${arrow}<span class="lb-score">${p.score}</span>`;
       list.appendChild(li);
     });
+
+    prevRanks = newRanks;
+  }
+
+  // ---- Pre-game countdown overlay ----
+  let overlayTimer = null;
+  function showCountdownOverlay(seconds) {
+    let overlay = $('countdownOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'countdownOverlay';
+      overlay.style.cssText = [
+        'position:fixed;inset:0;z-index:999',
+        'display:flex;flex-direction:column;align-items:center;justify-content:center',
+        'background:rgba(4,30,66,0.88)',
+        'backdrop-filter:blur(6px)',
+        'color:#fff',
+        'font-family:inherit',
+        'pointer-events:none',
+      ].join(';');
+      overlay.innerHTML = `
+        <div style="font-size:20px;font-weight:700;letter-spacing:0.05em;margin-bottom:16px;opacity:0.85;">GET READY!</div>
+        <div id="overlayCount" style="font-size:120px;font-weight:900;line-height:1;color:#ffc220;text-shadow:0 0 40px rgba(255,194,32,0.6);"></div>
+      `;
+      document.body.appendChild(overlay);
+    }
+
+    if (overlayTimer) clearInterval(overlayTimer);
+    let s = seconds;
+    const countEl = overlay.querySelector('#overlayCount');
+    overlay.style.display = 'flex';
+    countEl.textContent = s;
+    countEl.style.transform = 'scale(1)';
+
+    overlayTimer = setInterval(() => {
+      s -= 1;
+      if (s <= 0) {
+        clearInterval(overlayTimer);
+        overlayTimer = null;
+        overlay.style.display = 'none';
+        return;
+      }
+      countEl.textContent = s;
+      // Pulse animation via inline style reset trick
+      countEl.style.transform = 'scale(1.3)';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        countEl.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        countEl.style.transform = 'scale(1)';
+      }));
+    }, 1000);
   }
 
   // Podium ceremony: reveal #3, #2, #1 with staggered delays
