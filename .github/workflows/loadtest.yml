@@ -1,0 +1,49 @@
+name: Load Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      room:
+        description: 'Room code (e.g. ABCDEF)'
+        required: true
+      players:
+        description: 'Number of simulated players'
+        required: false
+        default: '250'
+      delay:
+        description: 'ms delay between each player joining'
+        required: false
+        default: '50'
+
+jobs:
+  loadtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install socket.io-client
+        run: npm install socket.io-client
+
+      - name: Run load test
+        run: |
+          node loadtest.mjs \
+            --url https://quizblitz-production.up.railway.app \
+            --room ${{ github.event.inputs.room }} \
+            --players ${{ github.event.inputs.players }} \
+            --delay ${{ github.event.inputs.delay }} \
+          2>&1 | tee loadtest-report.txt
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loadtest-report
+          path: loadtest-report.txt
