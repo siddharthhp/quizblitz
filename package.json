@@ -1,0 +1,23 @@
+{
+  "name": "quizblitz",
+  "version": "1.0.0",
+  "description": "Kahoot-style live multiplayer quiz for 400+ concurrent players",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mammoth": "^1.7.2",
+    "multer": "^1.4.5-lts.1",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "docx": "^8.5.0"
+  }
+}

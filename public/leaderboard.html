@@ -3,40 +3,113 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RetailBlitz — Leaderboard</title>
+    <title>RetailBlitz — Live Leaderboard</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <style>
-      body { overflow: hidden; }
+      body { overflow: hidden; background: #f0f4f8; }
       main { max-width: 860px; }
-      #step-join { text-align: center; margin-top: 60px; }
-      #step-live h1 { text-align: center; font-size: 40px; margin-bottom: 4px; }
-      #step-live .subtitle { text-align: center; color: var(--muted); margin-bottom: 20px; font-size: 15px; }
+
+      /* Join step */
+      #step-join {
+        text-align: center;
+        margin-top: 60px;
+        border-top: 4px solid #ffc220;
+      }
+      #step-join h1 { font-size: 32px; margin-bottom: 8px; }
+      #step-join p { color: var(--muted); margin-bottom: 20px; }
+
+      /* Leaderboard title area */
+      #step-live h1 {
+        text-align: center;
+        font-size: 40px;
+        margin-bottom: 4px;
+        background: linear-gradient(90deg, #0071dc, #ffc220);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        font-weight: 900;
+      }
+      #step-live .subtitle {
+        text-align: center;
+        color: var(--muted);
+        margin-bottom: 20px;
+        font-size: 15px;
+      }
+
+      /* Leaderboard rows */
       .leaderboard li {
         font-size: 22px;
         padding: 16px 20px;
         margin-bottom: 10px;
+        border-radius: 12px;
         transition: background 0.3s ease;
         animation: slidein 0.35s ease both;
       }
-      .leaderboard li:nth-child(1) { font-size: 26px; background: rgba(255,209,102,0.13); }
-      .leaderboard li:nth-child(2) { font-size: 24px; background: rgba(180,180,180,0.09); }
-      .leaderboard li:nth-child(3) { font-size: 23px; background: rgba(180,100,30,0.09); }
-      .leaderboard li .lb-score { font-size: 0.9em; }
+      .leaderboard li:nth-child(1) {
+        font-size: 26px;
+        background: linear-gradient(90deg, rgba(255,194,32,0.2), rgba(255,194,32,0.05));
+        border: 2px solid #ffc220;
+        box-shadow: 0 4px 16px rgba(255,194,32,0.2);
+      }
+      .leaderboard li:nth-child(2) {
+        font-size: 24px;
+        background: rgba(176,190,197,0.2);
+        border-color: #b0bec5;
+      }
+      .leaderboard li:nth-child(3) {
+        font-size: 23px;
+        background: rgba(200,149,108,0.15);
+        border-color: #c8956c;
+      }
+      .leaderboard li .lb-score {
+        font-size: 0.9em;
+        color: #0071dc;
+        font-weight: 800;
+      }
+      .leaderboard li .lb-name { font-weight: 700; }
+
       @keyframes slidein {
-        from { opacity: 0; transform: translateX(-20px); }
+        from { opacity: 0; transform: translateX(-24px); }
         to   { opacity: 1; transform: translateX(0); }
       }
-      /* Podium medals override counter */
-      .leaderboard li:nth-child(1)::before { content: '🥇'; background: none; font-size: 22px; }
-      .leaderboard li:nth-child(2)::before { content: '🥈'; background: none; font-size: 22px; }
-      .leaderboard li:nth-child(3)::before { content: '🥉'; background: none; font-size: 22px; }
-      #liveStatus { text-align: center; margin-top: 20px; font-size: 14px; color: var(--muted); }
-      .pulse { animation: pulse 1.5s infinite; }
-      @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+      /* Medal overrides */
+      .leaderboard li:nth-child(1)::before { content: '🥇'; background: none; font-size: 24px; width: auto; }
+      .leaderboard li:nth-child(2)::before { content: '🥈'; background: none; font-size: 22px; width: auto; }
+      .leaderboard li:nth-child(3)::before { content: '🥉'; background: none; font-size: 20px; width: auto; }
+
+      /* Live pulse */
+      #liveStatus {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+      .pulse { animation: pulse 1.5s infinite; color: #2e7d32; }
+      @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
       /* Vote chart */
-      #step-votes { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none; }
-      #step-live.card { border-top-left-radius: 0; border-top-right-radius: 0; border-top: none; margin-top: 0; }
+      #step-votes {
+        margin-bottom: 0;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: none;
+        border-top: 4px solid #0071dc;
+      }
+      #step-votes h2 {
+        margin-top: 0;
+        font-size: 20px;
+        color: var(--fg);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #step-live.card {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-top: none;
+        margin-top: 0;
+      }
       .vote-row {
         display: flex; align-items: center; gap: 10px;
         margin-bottom: 10px;
@@ -47,80 +120,109 @@
         border-radius: 8px; font-weight: 800; font-size: 14px; color: #fff;
       }
       .vote-bar-track {
-        flex: 1; background: rgba(255,255,255,0.08);
-        border-radius: 6px; height: 24px; overflow: hidden;
+        flex: 1; background: #e8eef5;
+        border-radius: 6px; height: 28px; overflow: hidden;
       }
       .vote-bar {
         height: 100%; border-radius: 6px;
         transition: width 0.7s cubic-bezier(0.34,1.2,0.64,1);
         min-width: 4px;
       }
-      .vote-row.correct .vote-bar-track { box-shadow: 0 0 0 2px rgba(6,214,160,0.5); }
-      .vote-pct { font-weight: 700; font-size: 15px; min-width: 38px; text-align: right; }
-      .vote-count { font-size: 13px; color: var(--muted); min-width: 32px; }
+      .vote-row.correct .vote-bar-track { box-shadow: 0 0 0 2px rgba(46,125,50,0.5); }
+      .vote-pct { font-weight: 800; font-size: 15px; min-width: 42px; text-align: right; color: var(--fg); }
+      .vote-count { font-size: 13px; color: var(--muted); min-width: 36px; }
       .fastest-callout {
-        padding: 8px 14px; border-radius: 10px;
-        background: rgba(255,209,102,0.15); color: var(--accent);
-        font-size: 15px; font-weight: 600;
+        padding: 10px 16px; border-radius: 10px;
+        background: rgba(255,194,32,0.15); color: #7a5a00;
+        border: 1px solid rgba(255,194,32,0.5);
+        font-size: 15px; font-weight: 700;
+        display: flex; align-items: center; gap: 8px;
       }
 
-      /* Big-screen / projector scaling */
+      /* Fun waiting state */
+      #step-join .fun-label {
+        font-size: 48px;
+        margin-bottom: 12px;
+        animation: bounce 1.5s ease-in-out infinite;
+      }
+      @keyframes bounce {
+        0%,100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+      }
+
+      /* Player count badge */
+      #lobbyPlayerCount {
+        background: #0071dc;
+        color: white;
+        padding: 4px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      /* Big-screen projector scaling */
       @media (min-width: 1200px) {
         main { max-width: 100%; padding: 32px 80px 60px; }
-        #step-live h1 { font-size: 56px; }
-        #step-live .subtitle { font-size: 18px; }
-        .leaderboard li { font-size: 30px; padding: 20px 28px; margin-bottom: 12px; }
-        .leaderboard li:nth-child(1) { font-size: 36px; }
-        .leaderboard li:nth-child(2) { font-size: 33px; }
-        .leaderboard li:nth-child(3) { font-size: 31px; }
-        .leaderboard li::before { width: 36px; height: 36px; font-size: 26px; }
-        .leaderboard li:nth-child(1)::before,
-        .leaderboard li:nth-child(2)::before,
-        .leaderboard li:nth-child(3)::before { font-size: 30px; }
+        #step-live h1 { font-size: 60px; }
+        #step-live .subtitle { font-size: 20px; }
+        .leaderboard li { font-size: 30px; padding: 20px 28px; margin-bottom: 14px; }
+        .leaderboard li:nth-child(1) { font-size: 38px; }
+        .leaderboard li:nth-child(2) { font-size: 34px; }
+        .leaderboard li:nth-child(3) { font-size: 32px; }
+        .leaderboard li::before { font-size: 28px !important; }
         #liveStatus { font-size: 18px; }
-        .vote-letter { width: 42px; height: 42px; font-size: 18px; border-radius: 10px; }
-        .vote-bar-track { height: 34px; }
-        .vote-pct { font-size: 20px; min-width: 52px; }
+        .vote-letter { width: 44px; height: 44px; font-size: 18px; border-radius: 10px; }
+        .vote-bar-track { height: 36px; }
+        .vote-pct { font-size: 22px; min-width: 56px; }
         .vote-count { font-size: 17px; }
-        .fastest-callout { font-size: 20px; padding: 12px 18px; }
-        #step-votes h2 { font-size: 30px; }
+        .fastest-callout { font-size: 22px; padding: 14px 20px; }
+        #step-votes h2 { font-size: 32px; }
       }
     </style>
   </head>
   <body>
     <header class="bar">
-      <span class="logo small">⚡ RetailBlitz · Leaderboard</span>
+      <span class="logo small">
+        <svg width="28" height="24" viewBox="0 0 52 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
+          <path d="M4 6 H10 L14 28 H40 L44 14 H14" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="19" cy="34" r="3.5" fill="white"/>
+          <circle cx="35" cy="34" r="3.5" fill="white"/>
+          <path d="M33 6 L21 22 H29 L26 36 L40 18 H31 Z" fill="#ffc220"/>
+        </svg>
+        RetailBlitz · Live
+      </span>
       <span id="status" class="pill">Connecting…</span>
     </header>
 
     <main id="app">
-      <!-- Join by code (fallback if no ?room= param) -->
+      <!-- Connect to room -->
       <section id="step-join" class="card">
-        <h1>Big Screen Display</h1>
-        <p>Enter the room code to show live standings.</p>
+        <div class="fun-label">🏆</div>
+        <h1>Who's on top?</h1>
+        <p>Enter the room code to light up this leaderboard.</p>
         <form id="joinForm">
           <input type="text" id="roomInput" placeholder="ROOM CODE" maxlength="6" autocomplete="off" />
-          <button type="submit" class="primary">Connect</button>
+          <button type="submit" class="primary">Let's go ⚡</button>
         </form>
         <div id="joinMsg" class="msg" style="margin-top:10px;"></div>
       </section>
 
-      <!-- Vote distribution chart (shown after each question reveal) -->
+      <!-- Vote distribution chart -->
       <section id="step-votes" class="card hidden">
-        <h2 style="margin-top:0;font-size:20px;color:var(--fg);">📊 Vote Distribution</h2>
+        <h2>📊 How did everyone vote?</h2>
         <div id="voteBars"></div>
-        <div id="fastestDisplay" style="margin-top:10px;"></div>
+        <div id="fastestDisplay" style="margin-top:12px;"></div>
       </section>
 
       <!-- Live leaderboard -->
       <section id="step-live" class="card hidden">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-          <h1 id="lbTitle" style="margin-bottom:4px;">🏆 Leaderboard</h1>
-          <span id="lobbyPlayerCount" class="hidden" style="font-size:14px;color:var(--muted);"></span>
+          <h1 id="lbTitle">🏆 Leaderboard</h1>
+          <span id="lobbyPlayerCount" class="hidden"></span>
         </div>
         <p class="subtitle" id="lbSubtitle"></p>
         <ol id="lbList" class="leaderboard"></ol>
-        <div id="liveStatus"><span class="pulse">●</span> Live</div>
+        <div id="liveStatus"><span class="pulse">●</span> LIVE · Walmart Retail Services All Hands 2026</div>
       </section>
     </main>
 

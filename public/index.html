@@ -3,15 +3,62 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f0c29" />
+    <meta name="theme-color" content="#0071dc" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>RetailBlitz — Join</title>
     <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      .wmt-header {
+        background: #0071dc;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 24px;
+        box-shadow: 0 2px 8px rgba(4,30,66,0.15);
+      }
+      .wmt-header-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+        color: #fff;
+      }
+      .wmt-header-caption {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.85);
+        text-align: right;
+        line-height: 1.4;
+      }
+      .wmt-header-caption strong {
+        color: #ffc220;
+        font-weight: 700;
+      }
+    </style>
   </head>
   <body class="landing">
+    <!-- Top header bar with logo + event caption -->
+    <header class="wmt-header">
+      <div class="wmt-header-brand">
+        <svg width="36" height="32" viewBox="0 0 52 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
+          <path d="M4 6 H10 L14 28 H40 L44 14 H14" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <circle cx="19" cy="34" r="3.5" fill="white"/>
+          <circle cx="35" cy="34" r="3.5" fill="white"/>
+          <path d="M33 6 L21 22 H29 L26 36 L40 18 H31 Z" fill="#ffc220"/>
+        </svg>
+        RetailBlitz
+      </div>
+      <div class="wmt-header-caption">
+        <strong>Walmart Retail Services</strong><br/>
+        All Hands 2026 · Live Quiz Event ⚡
+      </div>
+    </header>
+
     <main class="card">
-      <h1 class="logo">⚡ RetailBlitz</h1>
-      <p class="tagline">Live multiplayer quizzes. Up to 400 players per room.</p>
+      <p class="tagline">Quiz o'clock. Are you ready? ⚡</p>
 
       <section class="join">
         <h2>Join a game</h2>
@@ -41,14 +88,9 @@
         </form>
         <div id="formMsg" class="msg" style="min-height:1.4em;margin-top:6px;"></div>
       </section>
-
-      <section class="host-cta">
-        <h2>Hosting?</h2>
-        <a class="ghost" href="/host.html">Create a room →</a>
-      </section>
     </main>
+
     <script>
-      // Auto-fill room code from QR deeplink (?code=XXXX)
       (function () {
         const params = new URLSearchParams(location.search);
         const preCode = (params.get('code') || '').toUpperCase().trim();
