@@ -272,17 +272,24 @@
   });
 
   // ---- Game over ----
-  socket.on('finished', ({ leaderboard }) => {
+  socket.on('finished', ({ leaderboard, rank, total }) => {
     stopCountdown();
     $('finalScore').textContent = myScore;
 
+    // Show personal rank banner
+    const rankBanner = document.getElementById('myRankBanner');
+    if (rankBanner && rank) {
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎯';
+      rankBanner.innerHTML = `${medal} You finished <strong>#${rank}</strong> out of <strong>${total}</strong> players!`;
+      rankBanner.classList.remove('hidden');
+    }
+
     const lb = $('finalBoard');
     lb.innerHTML = '';
-    let myRank = -1;
+    let myRank = rank || -1;
     leaderboard.forEach((p, i) => {
       const li = document.createElement('li');
       const isMe = p.name === name;
-      if (isMe) myRank = i + 1;
       li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}${isMe ? ' 👈 you' : ''}</span><span class="lb-score">${p.score}</span>`;
       lb.appendChild(li);
     });

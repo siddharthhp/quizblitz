@@ -57,11 +57,17 @@ function publicQuestion(q) {
   return { id: q.id, question: q.question, options: q.options };
 }
 
-function leaderboard(room) {
+function leaderboard(room, limit = 25) {
   return Array.from(room.players.values())
     .map((p) => ({ name: p.name, score: p.score }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, 25);
+    .slice(0, limit);
+}
+
+function fullLeaderboard(room) {
+  return Array.from(room.players.values())
+    .map((p) => ({ name: p.name, score: p.score }))
+    .sort((a, b) => b.score - a.score);
 }
 
 function broadcastRoster(room) {
@@ -157,10 +163,20 @@ function startQuestion(room) {
 
 function finishGame(room) {
   room.state = 'finished';
-  const lb = leaderboard(room);
-  io.to(room.code).emit('finished', { leaderboard: lb });
-  // also push to big-screen display channel
-  io.to(`display:${room.code}`).emit('leaderboard:update', { leaderboard: lb, final: true });
+  const lb = leaderboard(room);         // top 25 for host + display
+  const allLb = fullLeaderboard(room);  // all players sorted
+
+  // Send each player their personal rank + top-25 leaderboard
+  for (const player of room.players.values()) {
+    const rank = allLb.findIndex((p) => p.name === player.name) + 1;
+    io.to(player.socketId).emit('finished', { leaderboard: lb, rank, total: allLb.length });
+  }
+
+  // Host gets top 25
+  io.to(room.hostSocketId).emit('finished', { leaderboard: lb });
+
+  // Big-screen display gets ALL entries
+  io.to(`display:${room.code}`).emit('leaderboard:update', { leaderboard: allLb, final: true });
 }
 
 function nextQuestion(room) {
