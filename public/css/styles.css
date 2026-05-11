@@ -178,8 +178,20 @@ button:not(:disabled):hover { transform: translateY(-1px); }
 .timer.critical { color: var(--bad); animation: timer-pulse 0.5s ease-in-out infinite; }
 @keyframes timer-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 .qfoot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; color: var(--muted); }
-#qStatus.pill { transition: background 0.2s; }
-#qStatus.pill:empty { display: none; }
+.diff-badge {
+  display: flex; align-items: center; gap: 10px;
+  margin: -4px 0 12px;
+  min-height: 32px;
+}
+.diff-label {
+  display: inline-block;
+  padding: 5px 14px; border-radius: 999px;
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.diff-pts {
+  font-size: 16px; font-weight: 800;
+}
 
 .options {
   list-style: none; padding: 0; margin: 16px 0;

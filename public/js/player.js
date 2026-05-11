@@ -125,15 +125,15 @@
   socket.on('disconnect', () => {
     const s = $('qStatus');
     if (s) {
-      s.textContent = '⚡ Reconnecting…';
-      s.style.background = 'rgba(239,71,111,0.3)';
+      s.innerHTML = `<span class="diff-label" style="color:#c62828;background:rgba(239,71,111,0.15);">⚡ Reconnecting…</span>`;
+      s.style.background = '';
     }
     stopCountdown();
   });
 
   socket.on('reconnect', () => {
     const s = $('qStatus');
-    if (s) { s.textContent = ''; s.style.background = ''; }
+    if (s) { s.innerHTML = ''; s.style.background = ''; }
     // Re-join the room after reconnect so server re-registers the socket
     socket.emit('player:join', { code, name, avatar }, (ack) => {
       if (!ack?.ok) {
@@ -226,8 +226,8 @@
 
     const status = $('qStatus');
     const ds = DIFF_STYLE[difficulty] || DIFF_STYLE['hard'];
-    status.innerHTML = `<span style="color:${ds.color}">${ds.label}</span> · <span style="color:var(--accent);font-weight:700;">${maxPts ?? '?'} pts</span>`;
-    status.style.background = ds.bg;
+    status.innerHTML = `<span class="diff-label" style="color:${ds.color};background:${ds.bg};">${ds.label}</span><span class="diff-pts" style="color:var(--accent);">${maxPts ?? '?'} pts</span>`;
+    status.style.background = '';
     show('step-question');
     startCountdown(Math.round(durationMs / 1000));
   });
@@ -242,13 +242,13 @@
     soundLock();
 
     const status = $('qStatus');
-    status.textContent = '⏳ Locked in';
-    status.style.background = 'rgba(255,209,102,0.25)';
+    status.innerHTML = `<span class="diff-label" style="color:#7a5a00;background:rgba(255,209,102,0.3);">⏳ Locked in</span>`;
+    status.style.background = '';
 
     socket.emit('player:answer', { index: currentIndex, choice: idx }, (ack) => {
       if (!ack?.ok) {
-        status.textContent = `⚠️ ${ack?.error || 'Try again'}`;
-        status.style.background = 'rgba(239,71,111,0.3)';
+        status.innerHTML = `<span class="diff-label" style="color:#c62828;background:rgba(239,71,111,0.15);">⚠️ ${ack?.error || 'Try again'}</span>`;
+        status.style.background = '';
         lockedChoice = null;
         node.classList.remove('locked');
         Array.from($('qOptions').children).forEach((n) =>
