@@ -364,10 +364,8 @@ io.on('connection', (socket) => {
     const correct = choice === q.correctIndex;
     const durationMs = room.currentDurationMs || DEFAULT_QUESTION_DURATION_MS;
     const maxPts = maxPointsForDuration(durationMs);
-    // Linear time decay: full points for instant answer, half points at time limit
-    const gained = correct
-      ? Math.max(Math.round(maxPts / 2), Math.round(maxPts - (maxPts / 2 * elapsed) / durationMs))
-      : 0;
+    // Fixed points for correct answer — no speed decay
+    const gained = correct ? maxPts : 0;
 
     // Streak tracking — award bonus on 3rd and 5th consecutive correct
     let bonus = 0;
