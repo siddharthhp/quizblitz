@@ -105,10 +105,9 @@
     socket.emit('player:join', { code, name }, (ack) => {
       if (!ack?.ok) {
         const err = ack?.error || 'Could not join room';
-        $('waitingMsg').innerHTML =
-          `❌ <strong>${err}</strong><br><br>` +
-          `<a class="ghost" href="/" style="display:inline-block;margin-top:8px;">← Try again</a>`;
-        $('waitingMsg').className = 'msg error';
+        // Store error and redirect back to join page — code + name will be pre-filled
+        sessionStorage.setItem('qb:joinError', err);
+        location.href = '/';
         return;
       }
       show('step-lobby');

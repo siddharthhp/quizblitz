@@ -334,7 +334,7 @@ io.on('connection', (socket) => {
     if (
       Array.from(room.players.values()).some((p) => p.name.toLowerCase() === name.toLowerCase())
     )
-      return ack?.({ ok: false, error: 'Name already taken' });
+      return ack?.({ ok: false, error: `"${name}" is already taken — try a different name (e.g. add your last initial)` });
 
     room.players.set(socket.id, {
       socketId: socket.id,

@@ -98,9 +98,29 @@
       (function () {
         const params = new URLSearchParams(location.search);
         const preCode = (params.get('code') || '').toUpperCase().trim();
+        // Pre-fill code from URL param or last used session value
+        const savedCode = sessionStorage.getItem('qb:code') || '';
+        const savedName = sessionStorage.getItem('qb:name') || '';
         if (preCode) {
           document.getElementById('code').value = preCode;
+        } else if (savedCode) {
+          document.getElementById('code').value = savedCode;
+        }
+        if (savedName) {
+          document.getElementById('name').value = savedName;
+          // Focus name field so they can easily edit it
           document.getElementById('name').focus();
+          document.getElementById('name').select();
+        } else if (preCode || savedCode) {
+          document.getElementById('name').focus();
+        }
+        // Show error if redirected back from a failed join
+        const joinErr = sessionStorage.getItem('qb:joinError');
+        if (joinErr) {
+          sessionStorage.removeItem('qb:joinError');
+          const msg = document.getElementById('formMsg');
+          msg.textContent = '⚠️ ' + joinErr;
+          msg.className = 'msg error';
         }
       })();
 
