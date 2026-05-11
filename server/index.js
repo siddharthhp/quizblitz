@@ -416,6 +416,7 @@ io.on('connection', (socket) => {
     if (!room) return;
 
     if (socket.id === room.hostSocketId) {
+      if (room.state === 'finished') return; // keep room alive so leaderboard display still works
       io.to(code).emit('room:closed', { reason: 'Host disconnected' });
       if (room.questionTimer) clearTimeout(room.questionTimer);
       rooms.delete(code);
