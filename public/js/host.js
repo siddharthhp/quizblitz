@@ -119,7 +119,6 @@
           return;
         }
         $('roomCode').textContent = ack.code;
-        $('joinUrl').textContent = `${location.origin}  ·  code: ${ack.code}`;
         $('questionTotal').textContent = ack.total;
         setDisplayLinks(ack.code);
         setStatus('Lobby');
