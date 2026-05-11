@@ -36,7 +36,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 main { max-width: 880px; margin: 0 auto; padding: 24px 18px 64px; }
-.player main, .landing main { max-width: 560px; }
+.player main, .landing main { max-width: 640px; }
 .card {
   background: var(--card);
   border: 1px solid var(--card-border);
@@ -94,9 +94,9 @@ p { line-height: 1.5; }
 .pill.score { background: var(--accent); color: #fff; font-weight: 700; }
 
 /* landing */
-.landing main { margin-top: 60px; text-align: center; }
+.landing main { margin-top: 48px; text-align: center; }
 .tagline { color: var(--muted); margin-bottom: 28px; font-size: 18px; font-weight: 600; }
-form { display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+form { display: flex; flex-direction: column; gap: 12px; margin: 12px 0; }
 input[type='text'], input[type='file'] {
   padding: 14px 16px; border-radius: 10px;
   border: 1.5px solid var(--card-border);
@@ -110,7 +110,23 @@ input[type='text']:focus {
   box-shadow: 0 0 0 3px rgba(0,113,220,0.15);
 }
 input[type='text']::placeholder { color: #90a4ae; }
-input#code { font-size: 24px; letter-spacing: 0.25em; text-align: center; text-transform: uppercase; }
+input#code { font-size: 28px; letter-spacing: 0.3em; text-align: center; text-transform: uppercase; }
+
+/* Desktop join layout — two-column inputs + wide card */
+@media (min-width: 600px) {
+  .landing main { margin-top: 64px; }
+  .landing .card { padding: 40px 48px; }
+  .landing .tagline { font-size: 20px; margin-bottom: 32px; }
+  .join-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .join-fields input { width: 100%; }
+  .join-submit { margin-top: 4px; }
+  .join-submit .primary { width: 100%; font-size: 18px; padding: 16px; border-radius: 12px; }
+  input#code { font-size: 22px; letter-spacing: 0.2em; }
+}
 
 button, .primary, .ghost {
   font-family: inherit; font-size: 16px; font-weight: 700;
@@ -167,15 +183,20 @@ button:not(:disabled):hover { transform: translateY(-1px); }
 
 .options {
   list-style: none; padding: 0; margin: 16px 0;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  display: grid; grid-template-columns: 1fr; gap: 10px;
+}
+/* 2-col on larger screens */
+@media (min-width: 520px) {
+  .options { grid-template-columns: 1fr 1fr; gap: 12px; }
 }
 .options li {
-  border-radius: 12px; padding: 22px 18px;
-  font-size: 18px; font-weight: 600; color: #fff;
+  border-radius: 12px; padding: 20px 18px;
+  font-size: 17px; font-weight: 600; color: #fff;
   cursor: pointer; border: 2px solid transparent;
   display: flex; align-items: center; gap: 12px;
   transition: transform 0.1s ease, opacity 0.15s ease, border-color 0.15s ease;
   user-select: none;
+  min-height: 64px;
 }
 .options li:hover { transform: translateY(-2px); filter: brightness(1.05); }
 .options li[data-letter='A'] { background: var(--o-a); }
@@ -199,12 +220,8 @@ button:not(:disabled):hover { transform: translateY(-1px); }
 .options li.wrong { opacity: 0.35; }
 .options li .letter {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 8px;
+  width: 34px; height: 34px; border-radius: 8px;
   background: rgba(0,0,0,0.2); font-weight: 800; flex-shrink: 0;
-}
-@media (max-width: 540px) {
-  .options { grid-template-columns: 1fr; }
-  .options li { font-size: 16px; padding: 18px; }
 }
 .host-options li { cursor: default; }
 .host-options li:hover { transform: none; }
@@ -284,7 +301,7 @@ pre { background: #f0f4f8; border: 1px solid var(--card-border); padding: 14px; 
   touch-action: manipulation;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 599px) {
   .landing body { min-height: 100dvh; display: flex; flex-direction: column; }
   .landing main {
     flex: 1;
@@ -296,15 +313,29 @@ pre { background: #f0f4f8; border: 1px solid var(--card-border); padding: 14px; 
     border-left: none; border-right: none;
   }
   .landing h1.logo { font-size: 42px; text-align: center; margin-bottom: 6px; }
-  .landing .tagline { font-size: 15px; text-align: center; margin-bottom: 28px; }
+  .landing .tagline { font-size: 16px; text-align: center; margin-bottom: 28px; }
   .landing input[type='text'] { font-size: 18px; padding: 16px 18px; border-radius: 12px; }
-  #code { font-size: 28px !important; letter-spacing: 0.3em; text-align: center; }
+  #code { font-size: 26px !important; letter-spacing: 0.25em; text-align: center; }
   .landing .primary { font-size: 18px; padding: 16px; border-radius: 12px; width: 100%; }
   .landing .host-cta { margin-top: 24px; padding-top: 20px; text-align: center; }
   .landing .ghost { width: 100%; padding: 14px; font-size: 16px; }
+  /* keep join fields stacked on mobile */
+  .join-fields { display: flex; flex-direction: column; }
 }
 
-@media (max-width: 600px) {
+/* Desktop player enhancements */
+@media (min-width: 600px) {
+  .player main { padding: 28px 28px 80px; }
+  .player .card { padding: 32px 36px; }
+  .player #qText { font-size: 24px; line-height: 1.45; }
+  .player .options li { font-size: 18px; padding: 22px 20px; }
+  .player .timer { font-size: 36px; }
+  .player #step-reveal h1 { font-size: 32px; }
+  .player #step-finished h1 { font-size: 32px; }
+}
+
+/* Mobile player tweaks */
+@media (max-width: 599px) {
   .player .bar { padding: 10px 14px; gap: 8px; }
   .player .bar .logo.small { font-size: 15px; }
   .player .pill { font-size: 12px; padding: 4px 10px; }
@@ -316,7 +347,6 @@ pre { background: #f0f4f8; border: 1px solid var(--card-border); padding: 14px; 
   .player .qmeta { margin-bottom: 10px; font-size: 13px; }
   .player .timer { font-size: 32px; }
   .player #qText { font-size: 20px; line-height: 1.4; margin: 0 0 16px; }
-  .player .options { grid-template-columns: 1fr !important; gap: 10px; margin: 0; }
   .player .options li { font-size: 17px; padding: 18px 16px; border-radius: 12px; min-height: 60px; }
   .player .options li .letter { width: 36px; height: 36px; border-radius: 10px; font-size: 15px; }
   .player #step-reveal h1 { font-size: 22px; }

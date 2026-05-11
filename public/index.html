@@ -63,28 +63,32 @@
       <section class="join">
         <h2>Join a game</h2>
         <form id="joinForm">
-          <input
-            type="text"
-            id="code"
-            placeholder="ROOM CODE"
-            maxlength="6"
-            autocomplete="off"
-            autocapitalize="characters"
-            inputmode="text"
-            spellcheck="false"
-            required
-          />
-          <input
-            type="text"
-            id="name"
-            placeholder="Your name"
-            maxlength="24"
-            autocomplete="nickname"
-            autocapitalize="words"
-            inputmode="text"
-            required
-          />
-          <button type="submit" class="primary">Join →</button>
+          <div class="join-fields">
+            <input
+              type="text"
+              id="code"
+              placeholder="ROOM CODE"
+              maxlength="6"
+              autocomplete="off"
+              autocapitalize="characters"
+              inputmode="text"
+              spellcheck="false"
+              required
+            />
+            <input
+              type="text"
+              id="name"
+              placeholder="Your name"
+              maxlength="24"
+              autocomplete="nickname"
+              autocapitalize="words"
+              inputmode="text"
+              required
+            />
+          </div>
+          <div class="join-submit">
+            <button type="submit" class="primary">Join →</button>
+          </div>
         </form>
         <div id="formMsg" class="msg" style="min-height:1.4em;margin-top:6px;"></div>
       </section>
