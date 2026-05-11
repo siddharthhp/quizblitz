@@ -13,18 +13,29 @@
   function setDisplayLinks(code) {
     roomCode = code;
     const displayUrl = `/leaderboard.html?room=${code}`;
-    const qrUrl = `/join.html?room=${code}`;
+    const joinUrl = `${location.origin}/?code=${code}`;
+
     ['displayUrl', 'displayUrlQ', 'displayUrlR', 'displayUrlF'].forEach((id) => {
       const el = $(id);
       if (!el) return;
-      el.href = displayUrl;
+      el.href = `${location.origin}${displayUrl}`;
       if (id === 'displayUrl') el.textContent = `${location.origin}${displayUrl}`;
     });
-    // QR join page link in lobby
-    const qrLink = $('qrPageUrl');
-    if (qrLink) {
-      qrLink.href = qrUrl;
-      qrLink.textContent = `${location.origin}${qrUrl}`;
+
+    // Join link anchor
+    const anchor = $('joinLinkAnchor');
+    if (anchor) {
+      anchor.href = joinUrl;
+      anchor.textContent = joinUrl;
+    }
+
+    // QR code
+    const qrContainer = $('qrCanvas');
+    if (qrContainer && typeof QRCode !== 'undefined') {
+      qrContainer.innerHTML = '';
+      QRCode.toCanvas(joinUrl, { width: 140, margin: 1, color: { dark: '#041e42', light: '#ffffff' } }, (err, canvas) => {
+        if (!err) qrContainer.appendChild(canvas);
+      });
     }
   }
 

@@ -58,14 +58,25 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
 
       <!-- Step 2: lobby -->
       <section id="step-lobby" class="card hidden">
-        <h1>Room code</h1>
-        <div id="roomCode" class="room-code">------</div>
-        <p>Players join at <strong id="joinUrl"></strong></p>
-        <p class="dim">Big screen: <a id="displayUrl" href="#" target="_blank" style="color:var(--accent);"></a></p>
-        <p class="dim">QR join page: <a id="qrPageUrl" href="#" target="_blank" style="color:var(--good);"></a></p>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px;">
+          <h1 style="margin:0;">Room ready!</h1>
+          <p class="dim" style="margin:0;">Big screen: <a id="displayUrl" href="#" target="_blank" style="color:var(--accent);"></a></p>
+        </div>
+
+        <!-- Join invite box -->
+        <div id="joinInviteBox" style="margin:16px 0;padding:20px 24px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,220,0.07),rgba(255,194,32,0.07));border:2px solid #0071dc;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+          <div id="qrCanvas" style="flex-shrink:0;background:#fff;padding:8px;border-radius:10px;line-height:0;"></div>
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Join link</div>
+            <a id="joinLinkAnchor" href="#" target="_blank" id="joinLinkDisplay" style="font-size:15px;font-weight:700;color:var(--accent);word-break:break-all;text-decoration:none;display:block;margin-bottom:12px;"></a>
+            <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Room code</div>
+            <div id="roomCode" class="room-code" style="font-size:48px;margin:0;text-align:left;"></div>
+          </div>
+        </div>
+
         <div class="lobby-grid">
           <div>
-            <h2><span id="playerCount">0</span> players</h2>
+            <h2><span id="playerCount">0</span> players joined</h2>
             <ul id="playerList" class="player-list"></ul>
           </div>
           <div>
@@ -121,6 +132,7 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     <script src="/js/host.js"></script>
   </body>
 </html>
