@@ -8,8 +8,6 @@
 
   const socket = io();
   let isFinal = false;
-  let prevRanks = new Map(); // name -> rank (1-based), reset on each display:join
-  let prevHadScores = false; // only show arrows once players have non-zero scores
 
   // Auto-join if ?room= param present
   const params = new URLSearchParams(location.search);
@@ -37,8 +35,7 @@
         show('step-join');
         return;
       }
-      prevRanks = new Map(); // reset rank history on fresh join
-      prevHadScores = false;
+      rowNodes.clear(); // reset FLIP nodes on fresh join
       setStatus(code);
       // Show player count if still in lobby
       if (ack.state === 'lobby') {
@@ -131,6 +128,9 @@
     }
   });
 
+  // Persistent DOM nodes keyed by player name for FLIP animation
+  const rowNodes = new Map(); // name -> <li>
+
   function renderLeaderboard(entries, final) {
     isFinal = final;
     const list = $('lbList');
@@ -149,34 +149,61 @@
 
     if (final) return; // podium animation handles rendering
 
-    // Compute rank arrows relative to previous frame
-    // Only show arrows when there's a meaningful baseline (at least one player had a score last frame)
-    const thisFrameHasScores = entries.some((p) => p.score > 0);
-    const hasBaseline = prevHadScores && prevRanks.size > 0;
-    const newRanks = new Map();
-    entries.forEach((p, i) => newRanks.set(p.name, i + 1));
-
-    list.innerHTML = '';
-    entries.forEach((p, i) => {
-      const li = document.createElement('li');
-      let arrow = '';
-      if (hasBaseline) {
-        const was = prevRanks.get(p.name);
-        if (was == null) {
-          arrow = ''; // new entrant — no arrow
-        } else if (was > i + 1) {
-          arrow = `<span class="rank-up" title="Up ${was - (i+1)}">↑</span>`;
-        } else if (was < i + 1) {
-          arrow = `<span class="rank-down" title="Down ${(i+1) - was}">↓</span>`;
-        }
-      }
-      const av = p.avatar ? `<span class="lb-avatar">${p.avatar}</span>` : '';
-      li.innerHTML = `${av}<span class="lb-name">${escapeHtml(p.name)}</span>${arrow}<span class="lb-score">${p.score}</span>`;
-      list.appendChild(li);
+    // --- FLIP animation ---
+    // 1. Record current positions (First)
+    const firstRects = new Map();
+    rowNodes.forEach((el, name) => {
+      if (el.parentNode) firstRects.set(name, el.getBoundingClientRect().top);
     });
 
-    prevRanks = newRanks;
-    prevHadScores = thisFrameHasScores;
+    // 2. Update scores on existing nodes, create new ones
+    const incomingNames = new Set(entries.map((p) => p.name));
+
+    // Remove nodes for players no longer present
+    rowNodes.forEach((el, name) => {
+      if (!incomingNames.has(name)) {
+        el.remove();
+        rowNodes.delete(name);
+      }
+    });
+
+    // Reorder / create nodes
+    entries.forEach((p) => {
+      let li = rowNodes.get(p.name);
+      const av = p.avatar ? `<span class="lb-avatar">${p.avatar}</span>` : '';
+      if (!li) {
+        li = document.createElement('li');
+        li.style.transition = 'none';
+        rowNodes.set(p.name, li);
+      }
+      li.innerHTML = `${av}<span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
+      list.appendChild(li); // append in sorted order
+    });
+
+    // 3. Invert — compute delta and apply immediate reverse transform
+    entries.forEach((p) => {
+      const li = rowNodes.get(p.name);
+      if (!li) return;
+      const first = firstRects.get(p.name);
+      if (first == null) return; // new entrant, no animation needed
+      const last = li.getBoundingClientRect().top;
+      const delta = first - last;
+      if (Math.abs(delta) < 2) return; // no meaningful movement
+      li.style.transition = 'none';
+      li.style.transform = `translateY(${delta}px)`;
+    });
+
+    // 4. Play — remove the transform with a smooth transition
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        entries.forEach((p) => {
+          const li = rowNodes.get(p.name);
+          if (!li) return;
+          li.style.transition = 'transform 0.55s cubic-bezier(0.4,0,0.2,1)';
+          li.style.transform = 'translateY(0)';
+        });
+      });
+    });
   }
 
   // ---- Pre-game countdown overlay ----
