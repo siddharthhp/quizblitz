@@ -239,17 +239,20 @@
     });
 
     // Reveal #3, #2, #1 in reverse order with delays
-    const medals = ['🥉', '🥈', '🥇'];
-    const delays = [600, 1800, 3200]; // 3rd, 2nd, 1st
+    // medals[0]=🥇(1st), medals[1]=🥈(2nd), medals[2]=🥉(3rd)
+    const medals = ['🥇', '🥈', '🥉'];
+    const delays = [3200, 1800, 600]; // 1st revealed last, 3rd first
 
-    // Insert placeholders at top
-    const placeholders = top3.map((_, i) => {
+    // Insert placeholders at top IN ORDER so DOM is [1st, 2nd, 3rd, ...rest]
+    // insertBefore(firstChild) reverses insertion order, so insert in reverse: 3rd, 2nd, 1st
+    const placeholders = [];
+    for (let i = 0; i < top3.length; i++) placeholders.push(null);
+    for (let i = top3.length - 1; i >= 0; i--) {
       const li = document.createElement('li');
-      li.className = 'podium-hidden';
       li.style.cssText = 'opacity:0;transform:scale(0.5);transition:opacity 0.6s ease,transform 0.6s cubic-bezier(0.34,1.56,0.64,1);';
       list.insertBefore(li, list.firstChild);
-      return li;
-    });
+      placeholders[i] = li;
+    }
 
     // Reveal from 3rd to 1st
     [2, 1, 0].forEach((rank) => {

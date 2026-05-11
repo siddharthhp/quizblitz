@@ -16,6 +16,24 @@ const { parseDocxBuffer } = require('./parser');
 
 const PORT = process.env.PORT || 3000;
 const DEFAULT_QUESTION_DURATION_MS = 20_000;
+
+// Duration → difficulty → max points mapping
+const DIFFICULTY_POINTS = [
+  { maxMs:  5_000, label: 'very easy', maxPts: 250 },
+  { maxMs:  8_000, label: 'easy',      maxPts: 350 },
+  { maxMs: 10_000, label: 'medium',    maxPts: 500 },
+  { maxMs: 13_000, label: 'hard',      maxPts: 750 },
+];
+
+function maxPointsForDuration(durationMs) {
+  // Pick the tier whose maxMs matches exactly, else fall back to largest tier <= duration,
+  // else use the hard tier (750) for anything longer.
+  const match = DIFFICULTY_POINTS.find((t) => t.maxMs === durationMs);
+  if (match) return match.maxPts;
+  // For non-standard durations use the closest tier ≤ duration (capped at hard)
+  const tier = [...DIFFICULTY_POINTS].reverse().find((t) => durationMs >= t.maxMs);
+  return tier ? tier.maxPts : DIFFICULTY_POINTS[DIFFICULTY_POINTS.length - 1].maxPts;
+}
 const MAX_PLAYERS_PER_ROOM = 500;
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LEN = 6;
@@ -53,8 +71,19 @@ function questionDurationMs(q) {
   return (q.durationSec ?? 20) * 1000;
 }
 
-function publicQuestion(q) {
-  return { id: q.id, question: q.question, options: q.options };
+function difficultyLabel(durationMs) {
+  const tier = DIFFICULTY_POINTS.find((t) => t.maxMs === durationMs);
+  return tier ? tier.label : 'hard';
+}
+
+function publicQuestion(q, durationMs) {
+  return {
+    id: q.id,
+    question: q.question,
+    options: q.options,
+    difficulty: difficultyLabel(durationMs),
+    maxPts: maxPointsForDuration(durationMs),
+  };
 }
 
 function leaderboard(room, limit = 25) {
@@ -154,7 +183,7 @@ function startQuestion(room) {
     index: room.currentIndex,
     total: room.questions.length,
     durationMs,
-    ...publicQuestion(q),
+    ...publicQuestion(q, durationMs),
   });
 
   room.currentDurationMs = durationMs;
@@ -334,8 +363,10 @@ io.on('connection', (socket) => {
     const elapsed = Date.now() - room.questionStart;
     const correct = choice === q.correctIndex;
     const durationMs = room.currentDurationMs || DEFAULT_QUESTION_DURATION_MS;
+    const maxPts = maxPointsForDuration(durationMs);
+    // Linear time decay: full points for instant answer, half points at time limit
     const gained = correct
-      ? Math.max(500, Math.round(1000 - (500 * elapsed) / durationMs))
+      ? Math.max(Math.round(maxPts / 2), Math.round(maxPts - (maxPts / 2 * elapsed) / durationMs))
       : 0;
 
     // Streak tracking — award bonus on 3rd and 5th consecutive correct

@@ -200,7 +200,14 @@
   });
 
   // ---- Question received ----
-  socket.on('question', ({ index, total, durationMs, question, options }) => {
+  const DIFF_STYLE = {
+    'very easy': { bg: 'rgba(46,125,50,0.15)',  color: '#2e7d32', label: '⭐ Very Easy' },
+    'easy':      { bg: 'rgba(46,125,50,0.15)',  color: '#2e7d32', label: '⭐⭐ Easy' },
+    'medium':    { bg: 'rgba(230,81,0,0.15)',   color: '#e65100', label: '⭐⭐⭐ Medium' },
+    'hard':      { bg: 'rgba(198,40,40,0.15)',  color: '#c62828', label: '⭐⭐⭐⭐ Hard' },
+  };
+
+  socket.on('question', ({ index, total, durationMs, question, options, difficulty, maxPts }) => {
     currentIndex = index;
     lockedChoice = null;
     $('qIndex').textContent = `Q ${index + 1} / ${total}`;
@@ -218,8 +225,9 @@
     });
 
     const status = $('qStatus');
-    status.textContent = '';
-    status.style.background = '';
+    const ds = DIFF_STYLE[difficulty] || DIFF_STYLE['hard'];
+    status.innerHTML = `<span style="color:${ds.color}">${ds.label}</span> · <span style="color:var(--accent);font-weight:700;">${maxPts ?? '?'} pts</span>`;
+    status.style.background = ds.bg;
     show('step-question');
     startCountdown(Math.round(durationMs / 1000));
   });
