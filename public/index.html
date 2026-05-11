@@ -8,6 +8,52 @@
     <title>RetailBlitz — Join</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <style>
+      .avatar-section {
+        margin: 4px 0 0;
+      }
+      .avatar-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #546e7a;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+        text-align: left;
+      }
+      .avatar-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+      }
+      .avatar-btn {
+        font-size: 28px;
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        border: 2.5px solid transparent;
+        background: #f0f4f8;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.1s ease, border-color 0.15s ease, background 0.15s ease;
+        line-height: 1;
+        padding: 0;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .avatar-btn:hover { transform: scale(1.1); background: #e0eaf4; }
+      .avatar-btn.selected {
+        border-color: #0071dc;
+        background: rgba(0,113,220,0.1);
+        transform: scale(1.12);
+        box-shadow: 0 0 0 3px rgba(0,113,220,0.25);
+      }
+      @media (max-width: 599px) {
+        .avatar-btn { width: 46px; height: 46px; font-size: 24px; border-radius: 10px; }
+        .avatar-picker { gap: 6px; }
+      }
       .wmt-header {
         background: #0071dc;
         color: #fff;
@@ -86,6 +132,11 @@
               required
             />
           </div>
+          <div class="avatar-section">
+            <div class="avatar-label">Pick your avatar</div>
+            <div id="avatarPicker" class="avatar-picker"></div>
+            <input type="hidden" id="avatarInput" value="🦁" />
+          </div>
           <div class="join-submit">
             <button type="submit" class="primary">Join →</button>
           </div>
@@ -96,6 +147,28 @@
 
     <script>
       (function () {
+        const AVATARS = ['🦁','🐯','🐻','🦊','🐼','🐨','🐸','🐙','🦋','🦄','🐬','🦅','🐲','🦖','🌟','🔥'];
+
+        // Build avatar picker
+        const picker = document.getElementById('avatarPicker');
+        const avatarInput = document.getElementById('avatarInput');
+        const savedAvatar = sessionStorage.getItem('qb:avatar') || AVATARS[0];
+
+        AVATARS.forEach((emoji) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'avatar-btn' + (emoji === savedAvatar ? ' selected' : '');
+          btn.textContent = emoji;
+          btn.setAttribute('aria-label', emoji);
+          btn.addEventListener('click', () => {
+            picker.querySelectorAll('.avatar-btn').forEach((b) => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            avatarInput.value = emoji;
+          });
+          picker.appendChild(btn);
+        });
+        avatarInput.value = savedAvatar;
+
         const params = new URLSearchParams(location.search);
         const preCode = (params.get('code') || '').toUpperCase().trim();
         // Pre-fill code from URL param or last used session value
@@ -128,12 +201,14 @@
         e.preventDefault();
         const code = document.getElementById('code').value.trim().toUpperCase();
         const name = document.getElementById('name').value.trim();
+        const avatar = document.getElementById('avatarInput').value;
         const msg = document.getElementById('formMsg');
         if (!code) { msg.textContent = 'Enter a room code.'; msg.className = 'msg error'; return; }
         if (!name) { msg.textContent = 'Enter your name.'; msg.className = 'msg error'; return; }
         msg.textContent = '';
         sessionStorage.setItem('qb:name', name);
         sessionStorage.setItem('qb:code', code);
+        sessionStorage.setItem('qb:avatar', avatar);
         location.href = '/player.html';
       });
     </script>

@@ -7,9 +7,10 @@
 
   const code = (sessionStorage.getItem('qb:code') || '').toUpperCase();
   const name = sessionStorage.getItem('qb:name') || '';
+  const avatar = sessionStorage.getItem('qb:avatar') || '🎯';
   if (!code || !name) { location.href = '/'; return; }
 
-  $('meName').textContent = name;
+  $('meName').textContent = `${avatar} ${name}`;
   if ($('waitingCode')) $('waitingCode').textContent = code;
 
   const HISTORY_KEY = 'qb:history';
@@ -102,7 +103,7 @@
   socket.on('connect', () => {
     $('waitingMsg').textContent = 'Joining room…';
     $('waitingMsg').className = 'msg';
-    socket.emit('player:join', { code, name }, (ack) => {
+    socket.emit('player:join', { code, name, avatar }, (ack) => {
       if (!ack?.ok) {
         const err = ack?.error || 'Could not join room';
         // Store error and redirect back to join page — code + name will be pre-filled
@@ -134,7 +135,7 @@
     const s = $('qStatus');
     if (s) { s.textContent = ''; s.style.background = ''; }
     // Re-join the room after reconnect so server re-registers the socket
-    socket.emit('player:join', { code, name }, (ack) => {
+    socket.emit('player:join', { code, name, avatar }, (ack) => {
       if (!ack?.ok) {
         if ($('waitingMsg')) {
           $('waitingMsg').textContent = ack?.error || 'Could not rejoin';
@@ -340,7 +341,8 @@
     leaderboard.forEach((p, i) => {
       const li = document.createElement('li');
       const isMe = p.name === name;
-      li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}${isMe ? ' 👈 you' : ''}</span><span class="lb-score">${p.score}</span>`;
+      const av = p.avatar ? `<span class="lb-avatar">${p.avatar}</span>` : '';
+      li.innerHTML = `${av}<span class="lb-name">${escapeHtml(p.name)}${isMe ? ' 👈 you' : ''}</span><span class="lb-score">${p.score}</span>`;
       lb.appendChild(li);
     });
 

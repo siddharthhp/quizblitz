@@ -35,6 +35,12 @@ function maxPointsForDuration(durationMs) {
   return tier ? tier.maxPts : DIFFICULTY_POINTS[DIFFICULTY_POINTS.length - 1].maxPts;
 }
 const MAX_PLAYERS_PER_ROOM = 500;
+const AVATAR_ALLOWLIST = ['🦁','🐯','🐻','🦊','🐼','🐨','🐸','🐙','🦋','🦄','🐬','🦅','🐲','🦖','🌟','🔥'];
+const DEFAULT_AVATAR = '🎯';
+
+function sanitizeAvatar(avatar) {
+  return AVATAR_ALLOWLIST.includes(avatar) ? avatar : DEFAULT_AVATAR;
+}
 const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LEN = 6;
 
@@ -88,14 +94,14 @@ function publicQuestion(q, durationMs) {
 
 function leaderboard(room, limit = 25) {
   return Array.from(room.players.values())
-    .map((p) => ({ name: p.name, score: p.score }))
+    .map((p) => ({ name: p.name, score: p.score, avatar: p.avatar }))
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
 }
 
 function fullLeaderboard(room) {
   return Array.from(room.players.values())
-    .map((p) => ({ name: p.name, score: p.score }))
+    .map((p) => ({ name: p.name, score: p.score, avatar: p.avatar }))
     .sort((a, b) => b.score - a.score);
 }
 
@@ -103,6 +109,7 @@ function broadcastRoster(room) {
   const players = Array.from(room.players.values()).map((p) => ({
     name: p.name,
     score: p.score,
+    avatar: p.avatar,
   }));
   // Emit to entire room (host + players) and display channel
   io.to(room.code).emit('roster', { players });
@@ -313,7 +320,7 @@ io.on('connection', (socket) => {
     socket.join(`display:${code}`);
     socket.data.role = 'display';
     socket.data.roomCode = code;
-    const players = Array.from(room.players.values()).map((p) => ({ name: p.name, score: p.score }));
+    const players = Array.from(room.players.values()).map((p) => ({ name: p.name, score: p.score, avatar: p.avatar }));
     ack?.({
       ok: true,
       leaderboard: leaderboard(room),
@@ -323,7 +330,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('player:join', ({ code, name } = {}, ack) => {
+  socket.on('player:join', ({ code, name, avatar } = {}, ack) => {
     code = (code || '').toUpperCase().trim();
     name = (name || '').trim().slice(0, 24);
     if (!code || !name) return ack?.({ ok: false, error: 'Code and name required' });
@@ -339,6 +346,7 @@ io.on('connection', (socket) => {
     room.players.set(socket.id, {
       socketId: socket.id,
       name,
+      avatar: sanitizeAvatar(avatar),
       score: 0,
       answers: [],
       streak: 0,        // consecutive correct answers

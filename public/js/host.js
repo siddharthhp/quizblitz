@@ -145,7 +145,7 @@
       if (!seenPlayers.has(p.name)) {
         seenPlayers.add(p.name);
         const li = document.createElement('li');
-        li.textContent = p.name;
+        li.textContent = `${p.avatar || ''} ${p.name}`.trim();
         list.prepend(li); // newest at top
       }
     });

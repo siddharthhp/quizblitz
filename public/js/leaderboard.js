@@ -142,7 +142,7 @@
     if ($('liveStatus')) {
       $('liveStatus').innerHTML = final
         ? '✅ Final'
-        : '<span class="pulse">●</span> LIVE · Walmart Retail Services All Hands 2026';
+        : '<span class="pulse">●</span> LIVE · Walmart Retail Services Friday Fun Event';
     }
 
     if (final) return; // podium animation handles rendering
@@ -166,7 +166,8 @@
           arrow = `<span class="rank-down" title="Down ${(i+1) - was}">↓</span>`;
         }
       }
-      li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}</span>${arrow}<span class="lb-score">${p.score}</span>`;
+      const av = p.avatar ? `<span class="lb-avatar">${p.avatar}</span>` : '';
+      li.innerHTML = `${av}<span class="lb-name">${escapeHtml(p.name)}</span>${arrow}<span class="lb-score">${p.score}</span>`;
       list.appendChild(li);
     });
 
@@ -233,7 +234,8 @@
     // Show 4th+ immediately (no fanfare)
     rest.forEach((p) => {
       const li = document.createElement('li');
-      li.innerHTML = `<span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
+      const av = p.avatar ? `<span class="lb-avatar">${p.avatar}</span>` : '';
+      li.innerHTML = `${av}<span class="lb-name">${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
       li.style.opacity = '0.7';
       list.appendChild(li);
     });
@@ -260,7 +262,8 @@
       if (!p) return;
       setTimeout(() => {
         const li = placeholders[rank];
-        li.innerHTML = `<span class="lb-name">${medals[rank]} ${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
+        const av = p.avatar ? ` ${p.avatar}` : '';
+        li.innerHTML = `<span class="lb-name">${medals[rank]}${av} ${escapeHtml(p.name)}</span><span class="lb-score">${p.score}</span>`;
         // Force reflow then animate in
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
