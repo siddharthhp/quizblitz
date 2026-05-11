@@ -9,6 +9,7 @@
   const socket = io();
   let isFinal = false;
   let prevRanks = new Map(); // name -> rank (1-based), reset on each display:join
+  let prevHadScores = false; // only show arrows once players have non-zero scores
 
   // Auto-join if ?room= param present
   const params = new URLSearchParams(location.search);
@@ -37,6 +38,7 @@
         return;
       }
       prevRanks = new Map(); // reset rank history on fresh join
+      prevHadScores = false;
       setStatus(code);
       // Show player count if still in lobby
       if (ack.state === 'lobby') {
@@ -148,7 +150,9 @@
     if (final) return; // podium animation handles rendering
 
     // Compute rank arrows relative to previous frame
-    const hasBaseline = prevRanks.size > 0;
+    // Only show arrows when there's a meaningful baseline (at least one player had a score last frame)
+    const thisFrameHasScores = entries.some((p) => p.score > 0);
+    const hasBaseline = prevHadScores && prevRanks.size > 0;
     const newRanks = new Map();
     entries.forEach((p, i) => newRanks.set(p.name, i + 1));
 
@@ -172,6 +176,7 @@
     });
 
     prevRanks = newRanks;
+    prevHadScores = thisFrameHasScores;
   }
 
   // ---- Pre-game countdown overlay ----
