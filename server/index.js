@@ -1,4 +1,4 @@
-// RetailBlitz realtime server.
+// BrainBlitz realtime server.
 // One Node process holds many "rooms" (one per host). Each room has:
 //   - a 6-char join code
 //   - parsed questions
@@ -19,10 +19,10 @@ const DEFAULT_QUESTION_DURATION_MS = 20_000;
 
 // Duration → difficulty → max points mapping
 const DIFFICULTY_POINTS = [
-  { maxMs:  5_000, label: 'very easy', maxPts: 250 },
-  { maxMs:  8_000, label: 'easy',      maxPts: 350 },
-  { maxMs: 10_000, label: 'medium',    maxPts: 500 },
-  { maxMs: 13_000, label: 'hard',      maxPts: 750 },
+  { maxMs:  8_000, label: 'very easy', maxPts: 250 },
+  { maxMs: 12_000, label: 'easy',      maxPts: 350 },
+  { maxMs: 15_000, label: 'medium',    maxPts: 500 },
+  { maxMs: 18_000, label: 'hard',      maxPts: 750 },
 ];
 
 function maxPointsForDuration(durationMs) {
@@ -430,5 +430,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`RetailBlitz listening on :${PORT}`);
+  console.log(`BrainBlitz listening on :${PORT}`);
 });

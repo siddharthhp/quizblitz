@@ -1,5 +1,5 @@
 /**
- * RetailBlitz Load Test
+ * BrainBlitz Load Test
  * Simulates N players joining a room and answering questions.
  *
  * Usage:
@@ -34,7 +34,7 @@ if (!ROOM_CODE) {
   process.exit(1);
 }
 
-console.log(`\n🚀 RetailBlitz Load Test`);
+console.log(`\n🚀 BrainBlitz Load Test`);
 console.log(`   URL:     ${URL}`);
 console.log(`   Room:    ${ROOM_CODE}`);
 console.log(`   Players: ${NUM_PLAYERS}`);

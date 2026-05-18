@@ -10,52 +10,52 @@ const { Document, Paragraph, TextRun, Packer, HeadingLevel } = require(
 
 const QUESTIONS = [
   {
-    q: 'What is the capital of France? (15)',
+    q: 'What is the capital of France? (12)',
     options: ['London', 'Berlin', 'Paris', 'Madrid'],
     answer: 'C',
   },
   {
-    q: 'Which planet is closest to the Sun? (20)',
+    q: 'Which planet is closest to the Sun? (18)',
     options: ['Venus', 'Mercury', 'Earth', 'Mars'],
     answer: 'B',
   },
   {
-    q: 'How many sides does a hexagon have? (10)',
+    q: 'How many sides does a hexagon have? (8)',
     options: ['5', '6', '7', '8'],
     answer: 'B',
   },
   {
-    q: 'Who wrote Romeo and Juliet? (20)',
+    q: 'Who wrote Romeo and Juliet? (18)',
     options: ['Charles Dickens', 'Jane Austen', 'William Shakespeare', 'Homer'],
     answer: 'C',
   },
   {
-    q: 'What is 12 × 12? (15)',
+    q: 'What is 12 × 12? (12)',
     options: ['124', '144', '132', '148'],
     answer: 'B',
   },
   {
-    q: 'Which element has the chemical symbol O? (10)',
+    q: 'Which element has the chemical symbol O? (8)',
     options: ['Gold', 'Osmium', 'Oxygen', 'Oganesson'],
     answer: 'C',
   },
   {
-    q: 'In which year did World War II end? (20)',
+    q: 'In which year did World War II end? (18)',
     options: ['1943', '1944', '1946', '1945'],
     answer: 'D',
   },
   {
-    q: 'What is the largest ocean on Earth? (15)',
+    q: 'What is the largest ocean on Earth? (12)',
     options: ['Atlantic', 'Indian', 'Arctic', 'Pacific'],
     answer: 'D',
   },
   {
-    q: 'Which language runs in a web browser natively? (20)',
+    q: 'Which language runs in a web browser natively? (18)',
     options: ['Python', 'Java', 'JavaScript', 'Ruby'],
     answer: 'C',
   },
   {
-    q: 'What is the speed of light (approx) in km/s? (30)',
+    q: 'What is the speed of light (approx) in km/s? (18)',
     options: ['150,000', '300,000', '450,000', '600,000'],
     answer: 'B',
   },
@@ -68,7 +68,7 @@ function buildParagraphs() {
 
   paras.push(
     new Paragraph({
-      children: [new TextRun({ text: 'RetailBlitz Sample Questions', bold: true, size: 36 })],
+      children: [new TextRun({ text: 'BrainBlitz Sample Questions', bold: true, size: 36 })],
       heading: HeadingLevel.HEADING_1,
       spacing: { after: 200 },
     }),

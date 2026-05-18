@@ -1,4 +1,4 @@
-/* RetailBlitz — Walmart Light Theme */
+/* BrainBlitz — Walmart Light Theme */
 :root {
   --bg-1: #f0f4f8;
   --bg-2: #e8eef5;
@@ -371,4 +371,49 @@ pre { background: #f0f4f8; border: 1px solid var(--card-border); padding: 14px; 
 
 @supports (height: 100dvh) {
   .player main { min-height: calc(100dvh - 52px); }
+}
+
+/* Shake + red flash on wrong answer */
+@keyframes shake-wrong {
+  0%   { transform: translateX(0); background: var(--card); }
+  15%  { transform: translateX(-8px); background: #ffebee; }
+  30%  { transform: translateX(8px);  background: #ffcdd2; }
+  45%  { transform: translateX(-6px); background: #ffebee; }
+  60%  { transform: translateX(6px);  background: #ffcdd2; }
+  75%  { transform: translateX(-3px); background: #ffebee; }
+  90%  { transform: translateX(3px);  background: #fff5f5; }
+  100% { transform: translateX(0);    background: var(--card); }
+}
+.shake-wrong {
+  animation: shake-wrong 0.55s ease-out;
+}
+
+/* Streak burst overlay */
+@keyframes streak-burst {
+  0%   { opacity: 0; transform: scale(0.5); }
+  30%  { opacity: 1; transform: scale(1.15); }
+  70%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+#streakBurst {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(255, 194, 32, 0.15);
+}
+#streakBurst .streak-emoji {
+  font-size: 80px;
+  line-height: 1;
+}
+#streakBurst .streak-text {
+  font-size: 28px;
+  font-weight: 900;
+  color: #7a4a00;
+  text-shadow: 0 2px 8px rgba(255,194,32,0.5);
+  margin-top: 8px;
 }

@@ -75,6 +75,42 @@
     playTone(880, 'square', 0.06, 0.15);
   }
 
+  // ---- Shake on wrong ----
+  function shakeWrong() {
+    const card = document.querySelector('#step-question.card') || document.querySelector('#step-reveal.card');
+    // shake the whole body instead so it works regardless of which card is visible
+    document.body.classList.remove('shake-wrong');
+    // force reflow to restart animation
+    void document.body.offsetWidth;
+    document.body.style.overflow = 'hidden';
+    const target = document.querySelector('main > section:not(.hidden)') || document.body;
+    target.classList.remove('shake-wrong');
+    void target.offsetWidth;
+    target.classList.add('shake-wrong');
+    setTimeout(() => {
+      target.classList.remove('shake-wrong');
+      document.body.style.overflow = '';
+    }, 600);
+  }
+
+  // ---- Streak burst overlay ----
+  function showStreakBurst(streak) {
+    let el = document.getElementById('streakBurst');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'streakBurst';
+      el.innerHTML = `<div class="streak-emoji"></div><div class="streak-text"></div>`;
+      document.body.appendChild(el);
+    }
+    const emoji = streak >= 5 ? '🔥🔥' : '🔥';
+    const label = streak >= 5 ? `${streak} in a row!` : '3 in a row!';
+    el.querySelector('.streak-emoji').textContent = emoji;
+    el.querySelector('.streak-text').textContent = label;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = 'streak-burst 1.4s ease forwards';
+  }
+
   // ---- Confetti ----
   function fireConfetti() {
     if (typeof confetti !== 'function') return;
@@ -283,12 +319,15 @@
       $('revealPoints').innerHTML = `<span style="color:var(--good);">+${data.gained} pts</span>${streakMsg}`;
       soundCorrect();
       fireConfetti();
+      // Streak burst overlay on milestone streaks
+      if (data.streak >= 3) showStreakBurst(data.streak);
     } else {
       $('revealHeadline').innerHTML = `<span class="banner err">✗ WRONG</span>`;
       $('revealPoints').innerHTML = data.yourAnswer == null
         ? `<span style="color:var(--muted);">No answer — 0 pts</span>`
         : `<span style="color:var(--bad);">+0 pts</span>`;
       soundWrong();
+      shakeWrong();
     }
     $('revealDetail').textContent = `Correct answer: "${correctText}".${data.yourAnswer != null && !data.correct ? ` You chose: "${yourText}".` : ''}`;
 
