@@ -3,7 +3,7 @@
 //   - a 6-char join code
 //   - parsed questions
 //   - players { socketId -> { name, score, answers[] } }
-// Scoring: faster correct answers earn more (1000 base, linear time decay).
+// Scoring: fixed 100 pts per correct answer + streak bonuses (+200 at 3-streak, +500 at 5-streak).
 
 const path = require('path');
 const http = require('http');
@@ -17,22 +17,18 @@ const { parseDocxBuffer } = require('./parser');
 const PORT = process.env.PORT || 3000;
 const DEFAULT_QUESTION_DURATION_MS = 20_000;
 
-// Duration → difficulty → max points mapping
-const DIFFICULTY_POINTS = [
-  { maxMs:  8_000, label: 'very easy', maxPts: 250 },
-  { maxMs: 12_000, label: 'easy',      maxPts: 350 },
-  { maxMs: 15_000, label: 'medium',    maxPts: 500 },
-  { maxMs: 18_000, label: 'hard',      maxPts: 750 },
+// Duration → difficulty label mapping (points are always flat 100)
+const DIFFICULTY_TIERS = [
+  { maxMs:  8_000, label: 'very easy' },
+  { maxMs: 12_000, label: 'easy'      },
+  { maxMs: 15_000, label: 'medium'    },
+  { maxMs: 18_000, label: 'hard'      },
 ];
 
-function maxPointsForDuration(durationMs) {
-  // Pick the tier whose maxMs matches exactly, else fall back to largest tier <= duration,
-  // else use the hard tier (750) for anything longer.
-  const match = DIFFICULTY_POINTS.find((t) => t.maxMs === durationMs);
-  if (match) return match.maxPts;
-  // For non-standard durations use the closest tier ≤ duration (capped at hard)
-  const tier = [...DIFFICULTY_POINTS].reverse().find((t) => durationMs >= t.maxMs);
-  return tier ? tier.maxPts : DIFFICULTY_POINTS[DIFFICULTY_POINTS.length - 1].maxPts;
+const POINTS_PER_QUESTION = 100;
+
+function maxPointsForDuration(_durationMs) {
+  return POINTS_PER_QUESTION;
 }
 const MAX_PLAYERS_PER_ROOM = 500;
 const AVATAR_ALLOWLIST = ['🦁','🐯','🐻','🦊','🐼','🐨','🐸','🐙','🦋','🦄','🐬','🦅','🐲','🦖','🌟','🔥'];
@@ -78,7 +74,7 @@ function questionDurationMs(q) {
 }
 
 function difficultyLabel(durationMs) {
-  const tier = DIFFICULTY_POINTS.find((t) => t.maxMs === durationMs);
+  const tier = DIFFICULTY_TIERS.find((t) => t.maxMs === durationMs);
   return tier ? tier.label : 'hard';
 }
 
@@ -370,10 +366,8 @@ io.on('connection', (socket) => {
     const q = room.questions[index];
     const elapsed = Date.now() - room.questionStart;
     const correct = choice === q.correctIndex;
-    const durationMs = room.currentDurationMs || DEFAULT_QUESTION_DURATION_MS;
-    const maxPts = maxPointsForDuration(durationMs);
-    // Fixed points for correct answer — no speed decay
-    const gained = correct ? maxPts : 0;
+    // Fixed 100 pts per correct answer regardless of speed or difficulty
+    const gained = correct ? POINTS_PER_QUESTION : 0;
 
     // Streak tracking — award bonus on 3rd and 5th consecutive correct
     let bonus = 0;

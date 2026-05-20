@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BrainBlitz — Rules &amp; How to Play</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      body { background: #f0f4f8; }
+      main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+      .rules-header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      .rules-header .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 28px;
+        font-weight: 900;
+        color: #041e42;
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+      }
+      .rules-header p {
+        color: #546e7a;
+        font-size: 16px;
+        margin: 0;
+      }
+      .section {
+        background: #fff;
+        border: 1px solid #d0dde8;
+        border-radius: 16px;
+        padding: 24px 28px;
+        box-shadow: 0 4px 20px rgba(4,30,66,0.08);
+        margin-bottom: 20px;
+      }
+      .section h2 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #041e42;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .section ul, .section ol {
+        margin: 0;
+        padding-left: 20px;
+        line-height: 1.9;
+        color: #253342;
+      }
+      .section li { margin-bottom: 4px; }
+      .pill {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        vertical-align: middle;
+      }
+      .pill-blue  { background: rgba(0,113,220,0.12); color: #0071dc; }
+      .pill-gold  { background: rgba(255,194,32,0.2);  color: #7a4a00; }
+      .pill-green { background: rgba(46,125,50,0.12);  color: #2e7d32; }
+      .pill-red   { background: rgba(198,40,40,0.12);  color: #c62828; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+        margin-top: 8px;
+      }
+      th {
+        text-align: left;
+        padding: 8px 12px;
+        background: #f0f4f8;
+        color: #546e7a;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        border-bottom: 1px solid #d0dde8;
+      }
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eef2f7;
+        color: #253342;
+      }
+      tr:last-child td { border-bottom: none; }
+      .example-box {
+        background: #f8fafc;
+        border: 1px dashed #b0c4d8;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: 12px;
+        font-size: 14px;
+        color: #546e7a;
+        line-height: 1.7;
+      }
+      .example-box strong { color: #041e42; }
+      .back-link {
+        display: inline-block;
+        margin-bottom: 24px;
+        color: #0071dc;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .back-link:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a href="/" class="back-link">← Back to BrainBlitz</a>
+
+      <div class="rules-header">
+        <div class="logo">
+          <svg width="32" height="28" viewBox="0 0 52 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 6 H10 L14 28 H40 L44 14 H14" stroke="#041e42" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <circle cx="19" cy="34" r="3.5" fill="#041e42"/>
+            <circle cx="35" cy="34" r="3.5" fill="#041e42"/>
+            <path d="M33 6 L21 22 H29 L26 36 L40 18 H31 Z" fill="#ffc220"/>
+          </svg>
+          BrainBlitz
+        </div>
+        <p>Real-time quiz game — rules &amp; how to play</p>
+      </div>
+
+      <!-- How to join -->
+      <div class="section">
+        <h2>🚀 How to Join a Game</h2>
+        <ol>
+          <li>Go to <strong>brainblitz.app</strong> (or the host's URL) on your phone or any browser.</li>
+          <li>Enter the <strong>6-character room code</strong> shown on the host's screen.</li>
+          <li>Pick a <strong>display name</strong> (max 24 characters, must be unique in the room).</li>
+          <li>Choose an <strong>emoji avatar</strong> — it appears next to your name on the leaderboard.</li>
+          <li>Wait in the lobby until the host starts the game.</li>
+        </ol>
+        <div class="example-box">
+          💡 <strong>Tip:</strong> Keep the tab open throughout the game. If you get disconnected, the app will try to reconnect automatically.
+        </div>
+      </div>
+
+      <!-- Scoring -->
+      <div class="section">
+        <h2>🏆 Scoring</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>✅ Correct answer</td>
+              <td><strong>+100 pts</strong></td>
+            </tr>
+            <tr>
+              <td>❌ Wrong answer</td>
+              <td><strong>0 pts</strong></td>
+            </tr>
+            <tr>
+              <td>⏱️ No answer (timer runs out)</td>
+              <td><strong>0 pts</strong></td>
+            </tr>
+            <tr>
+              <td>🔥 3-correct streak bonus</td>
+              <td><strong>+200 pts</strong> (one-time at exactly 3)</td>
+            </tr>
+            <tr>
+              <td>🔥🔥 5-correct streak bonus</td>
+              <td><strong>+500 pts</strong> (one-time at exactly 5)</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="example-box">
+          <strong>Example — 10 questions, all correct with a 5-streak:</strong><br>
+          Questions 1–5: 5 × 100 = 500 pts<br>
+          + 3-streak bonus at Q3: +200 pts<br>
+          + 5-streak bonus at Q5: +500 pts<br>
+          Questions 6–10: 5 × 100 = 500 pts<br>
+          <strong>Total: 1,700 pts</strong>
+        </div>
+      </div>
+
+      <!-- Streaks -->
+      <div class="section">
+        <h2>🔥 Streaks</h2>
+        <ul>
+          <li>A <strong>streak</strong> is a run of consecutive correct answers.</li>
+          <li>Bonus points are awarded at the <strong>3rd</strong> and <strong>5th</strong> correct answer in a row.</li>
+          <li>The streak resets to zero if you answer <strong>wrong</strong> or <strong>don't answer</strong> before the timer runs out.</li>
+          <li>Streaks continue across questions — you don't have to be fast, just correct.</li>
+          <li>When you hit a streak milestone, a <strong>🔥 burst animation</strong> appears on your screen.</li>
+        </ul>
+      </div>
+
+      <!-- Difficulty tiers -->
+      <div class="section">
+        <h2>⭐ Difficulty Tiers</h2>
+        <p style="color:#546e7a;font-size:14px;margin:0 0 12px;">Difficulty controls how much <strong>time</strong> you have to answer — not the points. Every correct answer is worth 100 pts.</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Time to answer</th>
+              <th>Points</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="pill pill-green">⭐ Very Easy</span></td>
+              <td>8 seconds</td>
+              <td>100 pts</td>
+            </tr>
+            <tr>
+              <td><span class="pill pill-green">⭐⭐ Easy</span></td>
+              <td>12 seconds</td>
+              <td>100 pts</td>
+            </tr>
+            <tr>
+              <td><span class="pill" style="background:rgba(230,81,0,0.12);color:#e65100;">⭐⭐⭐ Medium</span></td>
+              <td>15 seconds</td>
+              <td>100 pts</td>
+            </tr>
+            <tr>
+              <td><span class="pill pill-red">⭐⭐⭐⭐ Hard</span></td>
+              <td>18 seconds</td>
+              <td>100 pts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Answering -->
+      <div class="section">
+        <h2>📲 Answering Questions</h2>
+        <ul>
+          <li>Tap one of the <strong>A / B / C / D</strong> options to lock in your answer.</li>
+          <li>Once locked, <strong>you cannot change your answer</strong>.</li>
+          <li>A ⏳ badge confirms your answer was received.</li>
+          <li>If the timer reaches zero before you answer, you score 0 for that question.</li>
+          <li>After all players answer (or time runs out), the host reveals the correct answer.</li>
+        </ul>
+      </div>
+
+      <!-- Host controls -->
+      <div class="section">
+        <h2>🎮 Host Controls</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Action</th>
+              <th>What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Start Game</strong></td>
+              <td>Begins a 3-second countdown then launches Q1. Requires ≥1 player in the lobby.</td>
+            </tr>
+            <tr>
+              <td><strong>Skip Question</strong></td>
+              <td>Ends the current timer early and reveals the answer immediately.</td>
+            </tr>
+            <tr>
+              <td><strong>Next Question</strong></td>
+              <td>Advances to the next question after the reveal screen.</td>
+            </tr>
+            <tr>
+              <td><strong>End Game</strong></td>
+              <td>Finishes the game immediately and shows the final leaderboard.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Room rules -->
+      <div class="section">
+        <h2>📋 Room Rules</h2>
+        <ul>
+          <li>Maximum <strong>500 players</strong> per room.</li>
+          <li>Display names are <strong>case-insensitive unique</strong> — "Alice" and "alice" cannot both join.</li>
+          <li>You can only join a room while it is in the <strong>lobby</strong> (before the host starts).</li>
+          <li>If the host disconnects mid-game, the room closes and all players are notified.</li>
+          <li>Rooms with finished games stay open so the leaderboard display remains live.</li>
+          <li>Your answer history for this game is saved on your device for reference after the game ends.</li>
+        </ul>
+      </div>
+
+      <!-- Upload format -->
+      <div class="section">
+        <h2>📄 Question File Format (Hosts)</h2>
+        <p style="color:#546e7a;font-size:14px;margin:0 0 12px;">Upload a <strong>.docx</strong> file using one of these two formats:</p>
+        <p style="font-weight:700;margin:0 0 6px;">Prose format:</p>
+        <div class="example-box">
+          Q: What is the capital of France? (12)<br>
+          A) London<br>
+          B) Berlin<br>
+          C) Paris<br>
+          D) Madrid<br>
+          Answer: C
+        </div>
+        <p style="font-weight:700;margin:16px 0 6px;">Table format:</p>
+        <div class="example-box">
+          Headers: <strong>Question | A | B | C | D | Answer</strong><br>
+          One row per question. Answer column = letter (A–D).
+        </div>
+        <p style="color:#546e7a;font-size:13px;margin-top:12px;">
+          The number in parentheses sets the timer in seconds (8 = very easy, 12 = easy, 15 = medium, 18 = hard).
+          Any other value defaults to the hard tier.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <p style="text-align:center;color:#90a4ae;font-size:13px;margin-top:32px;">
+        BrainBlitz · Built with ❤️ · Last updated May 2026
+      </p>
+    </main>
+  </body>
+</html>
