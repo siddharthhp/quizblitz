@@ -43,6 +43,13 @@ const ROOM_CODE_LEN = 6;
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Required for Chrome Topics API — opt-in via Permissions-Policy header
+app.use((_req, res, next) => {
+  res.setHeader('Permissions-Policy', 'browsing-topics=(self)');
+  next();
+});
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 const upload = multer({
@@ -241,6 +248,18 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true, rooms: rooms.size }));
+
+// Privacy Sandbox attestation for Topics API (localhost dev)
+app.get('/.well-known/privacy-sandbox-attestations.json', (_req, res) => {
+  res.json({
+    privacy_sandbox_attestations: {
+      version: '1.0',
+      attestations: {
+        'topics_api': { enrollment_id: 'localhost' }
+      }
+    }
+  });
+});
 
 // ---- Socket.io ----
 
