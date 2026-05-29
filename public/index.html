@@ -284,60 +284,28 @@
         const btn = document.getElementById('topicsBtn');
         const result = document.getElementById('topicsResult');
 
-        // Feature detection
-        if (!('browsingTopics' in document)) {
-          btn.textContent = '🔍 Show My Interest Topics';
-          btn.addEventListener('click', () => {
-            result.innerHTML = '<span class="topics-unsupported">Topics API not supported — requires Chrome 115+ with Privacy Sandbox enabled.</span>';
-          });
-          return;
-        }
-
+        // Use fetch with browsingTopics:true (HTTP header approach — no attestation needed)
+        // Browser automatically attaches Sec-Browsing-Topics header to the request.
+        // Requires Chrome 115+ with Privacy Sandbox enabled.
         btn.addEventListener('click', async () => {
           btn.disabled = true;
           btn.textContent = 'Loading…';
           result.innerHTML = '';
           try {
-            // Try skipObservation (Chrome 123+), fall back to no-args (Chrome 115–122),
-            // fall back to mock data when attestation blocks localhost
-            let topics;
-            let isMock = false;
-            try {
-              topics = await document.browsingTopics({ skipObservation: true });
-            } catch (_e1) {
-              try {
-                topics = await document.browsingTopics();
-              } catch (_e2) {
-                // Attestation/enrollment check blocks localhost — use mock data so UI is demonstrable
-                isMock = true;
-                topics = [
-                  { topic: 9 },   // Games
-                  { topic: 24 },  // Sports
-                  { topic: 6 },   // Computers & Electronics
-                  { topic: 1 },   // Arts & Entertainment
-                  { topic: 8 },   // Food & Drink
-                  { topic: 22 },  // Science
-                ];
-              }
-            }
+            const res = await fetch('/api/topics', { browsingTopics: true });
+            const { topics } = await res.json();
 
             if (!topics || topics.length === 0) {
               result.innerHTML = '<p class="topics-empty">No topics found yet. Chrome needs a few weeks of browsing history to populate interests.</p>';
             } else {
-              const items = topics
-                .map((t) => `<li>${topicLabel(t.topic)}</li>`)
-                .join('');
-              const mockBadge = isMock
-                ? `<span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">DEMO — real API blocked on localhost</span><br/>`
-                : '';
+              const items = topics.map((id) => `<li>${topicLabel(id)}</li>`).join('');
               result.innerHTML = `
                 <p style="color:#546e7a;font-size:12px;margin-bottom:4px;">
-                  ${mockBadge}
                   Chrome reported <strong>${topics.length}</strong> interest topic${topics.length !== 1 ? 's' : ''}:
                 </p>
                 <ul class="topics-list">${items}</ul>
                 <p style="color:#aaa;font-size:11px;margin-top:8px;">
-                  ${isMock ? 'Mock data shown — deploy to an enrolled domain for real Topics API data.' : 'These are derived locally by Chrome — never sent to servers without your consent.'}
+                  Derived locally by Chrome — never sent to servers without your consent.
                 </p>`;
             }
           } catch (err) {
