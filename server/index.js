@@ -59,6 +59,24 @@ const io = new Server(server, {
 
 const rooms = new Map();
 
+// How long a lobby room stays alive after the host disconnects (ms).
+// Gives the host time to reconnect without killing the join link.
+const HOST_RECONNECT_GRACE_MS = 20 * 60 * 1000; // 20 minutes
+
+function scheduleRoomCleanup(code, delayMs) {
+  return setTimeout(() => {
+    const room = rooms.get(code);
+    if (!room) return;
+    // Only auto-delete if still in lobby and host is still gone
+    if (room.state === 'lobby') {
+      io.to(code).emit('room:closed', { reason: 'Game session expired' });
+      if (room.questionTimer) clearTimeout(room.questionTimer);
+      rooms.delete(code);
+      console.log(`Room ${code} expired after grace period`);
+    }
+  }, delayMs);
+}
+
 function makeRoomCode() {
   let code;
   do {
@@ -265,7 +283,11 @@ io.on('connection', (socket) => {
       questionTimer: null,
       currentDurationMs: DEFAULT_QUESTION_DURATION_MS,
       fastestPerQ: [], // { name, ms } per question index
+      cleanupTimer: null,
     };
+    // Auto-expire the lobby after 20 min from creation even if host stays connected.
+    // This prevents zombie rooms from accumulating.
+    room.cleanupTimer = scheduleRoomCleanup(code, HOST_RECONNECT_GRACE_MS);
     rooms.set(code, room);
     socket.join(code);
     socket.data.role = 'host';
@@ -275,9 +297,16 @@ io.on('connection', (socket) => {
 
   socket.on('host:start', (_payload, ack) => {
     const room = rooms.get(socket.data.roomCode);
-    if (!room || room.hostSocketId !== socket.id) return ack?.({ ok: false, error: 'Not host' });
+    if (!room) return ack?.({ ok: false, error: 'Room not found' });
+    // Re-adopt host socket if the previous host disconnected during grace period
+    if (room.hostSocketId === null && socket.data.role === 'host') {
+      room.hostSocketId = socket.id;
+    }
+    if (room.hostSocketId !== socket.id) return ack?.({ ok: false, error: 'Not host' });
     if (room.state !== 'lobby') return ack?.({ ok: false, error: 'Already started' });
     if (room.players.size === 0) return ack?.({ ok: false, error: 'No players have joined' });
+    // Cancel the lobby expiry timer — game is live now
+    if (room.cleanupTimer) { clearTimeout(room.cleanupTimer); room.cleanupTimer = null; }
     room.currentIndex = 0;
     startQuestion(room);
     ack?.({ ok: true });
@@ -408,8 +437,21 @@ io.on('connection', (socket) => {
 
     if (socket.id === room.hostSocketId) {
       if (room.state === 'finished') return; // keep room alive so leaderboard display still works
+
+      if (room.state === 'lobby') {
+        // Grace period: give host 20 min to reconnect before closing the room.
+        // The join link stays valid the entire time.
+        console.log(`Host disconnected from lobby ${code} — grace period started (${HOST_RECONNECT_GRACE_MS / 60000} min)`);
+        room.hostSocketId = null; // mark host as absent
+        if (room.cleanupTimer) clearTimeout(room.cleanupTimer);
+        room.cleanupTimer = scheduleRoomCleanup(code, HOST_RECONNECT_GRACE_MS);
+        return;
+      }
+
+      // Game in progress — close immediately
       io.to(code).emit('room:closed', { reason: 'Host disconnected' });
       if (room.questionTimer) clearTimeout(room.questionTimer);
+      if (room.cleanupTimer) clearTimeout(room.cleanupTimer);
       rooms.delete(code);
       return;
     }
