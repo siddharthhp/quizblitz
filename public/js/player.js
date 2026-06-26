@@ -11,7 +11,6 @@
   if (!code || !name) { location.href = '/'; return; }
 
   $('meName').textContent = `${avatar} ${name}`;
-  if ($('waitingCode')) $('waitingCode').textContent = code;
 
   const HISTORY_KEY = 'qb:history';
   const history = loadHistory();
@@ -135,6 +134,93 @@
     }), 350);
   }
 
+  // ---- Lobby waiting screen animations ----
+  let lobbyAnimActive = false;
+  const LOBBY_TAGLINES = [
+    'Warming up the brain cells…',
+    'Sharpening those neurons…',
+    'Loading trivia mode… 🧩',
+    'Don\'t Google anything, we know 👀',
+    'Mentally stretching… 🧘',
+    'Brain.exe is starting up…',
+    'May the best quizzer win! 🏆',
+    'Preparing to outsmart everyone…',
+    'Confidence level: quiz champion 💪',
+    'Fact-checking your vibes…',
+  ];
+  const LOBBY_FACTS = [
+    { icon: '⚡', text: 'A bolt of lightning is 5x hotter than the surface of the sun.' },
+    { icon: '🐙', text: 'Octopuses have three hearts and blue blood.' },
+    { icon: '🍯', text: 'Honey never spoils. Archaeologists found 3,000-year-old honey in Egyptian tombs — still edible.' },
+    { icon: '🌍', text: 'The Earth rotates faster at the equator than at the poles.' },
+    { icon: '🦈', text: 'Sharks are older than trees. Sharks have existed for ~450 million years; trees for ~350 million.' },
+    { icon: '🧠', text: 'Your brain generates enough electricity to power a small LED bulb.' },
+    { icon: '🐦', text: 'Crows can recognise and remember human faces — and hold grudges.' },
+    { icon: '🌊', text: 'More people have been to space than to the deepest point of the ocean.' },
+    { icon: '🎵', text: '"Happy Birthday to You" was one of the most recognised songs in the English language for decades.' },
+    { icon: '🔢', text: 'If you shuffle a deck of cards, there\'s a near-zero chance that exact order has ever existed before.' },
+  ];
+  const LOBBY_EMOJIS = ['🎯','🔥','💡','🏆','⚡','🎊','🌟','🎮','🧩','🎲'];
+
+  function startLobbyAnimations() {
+    if (lobbyAnimActive) return;
+    lobbyAnimActive = true;
+
+    // Floating emoji burst
+    const burst = $('lobby-emoji-burst');
+    if (burst) {
+      LOBBY_EMOJIS.forEach((emoji, i) => {
+        const el = document.createElement('span');
+        el.className = 'float-emoji';
+        el.textContent = emoji;
+        el.style.left = `${8 + i * 9}%`;
+        el.style.animationDelay = `${i * 0.3}s`;
+        el.style.animationDuration = `${2.5 + (i % 3) * 0.6}s`;
+        burst.appendChild(el);
+      });
+    }
+
+    // Cycling taglines
+    let tagIdx = 0;
+    const tagEl = $('lobby-tagline');
+    const tagTimer = setInterval(() => {
+      if (!lobbyAnimActive) { clearInterval(tagTimer); return; }
+      tagEl.classList.add('fade-out');
+      setTimeout(() => {
+        tagIdx = (tagIdx + 1) % LOBBY_TAGLINES.length;
+        tagEl.textContent = LOBBY_TAGLINES[tagIdx];
+        tagEl.classList.remove('fade-out');
+      }, 400);
+    }, 3500);
+
+    // Cycling fun facts
+    let factIdx = Math.floor(Math.random() * LOBBY_FACTS.length);
+    const factText = $('lobby-fact-text');
+    const factIcon = $('lobby-fact-icon');
+    if (factText && factIcon) {
+      factText.textContent = LOBBY_FACTS[factIdx].text;
+      factIcon.textContent = LOBBY_FACTS[factIdx].icon;
+    }
+    const factTimer = setInterval(() => {
+      if (!lobbyAnimActive) { clearInterval(factTimer); return; }
+      factIdx = (factIdx + 1) % LOBBY_FACTS.length;
+      if (factText) {
+        factText.style.opacity = '0';
+        factIcon.style.opacity = '0';
+        setTimeout(() => {
+          factText.textContent = LOBBY_FACTS[factIdx].text;
+          factIcon.textContent = LOBBY_FACTS[factIdx].icon;
+          factText.style.opacity = '1';
+          factIcon.style.opacity = '1';
+        }, 350);
+      }
+    }, 7000);
+  }
+
+  function stopLobbyAnimations() {
+    lobbyAnimActive = false;
+  }
+
   // ---- Connect & join ----
   socket.on('connect', () => {
     $('waitingMsg').textContent = 'Joining room…';
@@ -148,6 +234,7 @@
         return;
       }
       show('step-lobby');
+      startLobbyAnimations();
     });
   });
 
@@ -178,7 +265,11 @@
           $('waitingMsg').className = 'msg error';
         }
         show('step-waiting');
+        return;
       }
+      // If still in lobby (no question event will follow), show lobby
+      show('step-lobby');
+      startLobbyAnimations();
       // Server will emit current game state event (question/reveal/finished) which will re-sync UI
     });
   });
@@ -192,49 +283,6 @@
     choose(parseInt(li.dataset.idx, 10), li);
   });
 
-  // ---- Pre-game countdown ----
-  let playerOverlayTimer = null;
-  socket.on('pre-question', ({ seconds }) => {
-    let overlay = $('playerCountdownOverlay');
-    if (!overlay) {
-      overlay = document.createElement('div');
-      overlay.id = 'playerCountdownOverlay';
-      overlay.style.cssText = [
-        'position:fixed;inset:0;z-index:999',
-        'display:flex;flex-direction:column;align-items:center;justify-content:center',
-        'background:rgba(4,30,66,0.92)',
-        'color:#fff',
-        'font-family:inherit',
-        'pointer-events:none',
-      ].join(';');
-      overlay.innerHTML = `
-        <div style="font-size:18px;font-weight:700;letter-spacing:0.05em;margin-bottom:12px;opacity:0.85;">GET READY!</div>
-        <div id="playerOverlayCount" style="font-size:100px;font-weight:900;line-height:1;color:#ffc220;text-shadow:0 0 40px rgba(255,194,32,0.6);"></div>
-      `;
-      document.body.appendChild(overlay);
-    }
-    if (playerOverlayTimer) clearInterval(playerOverlayTimer);
-    let s = seconds;
-    const countEl = overlay.querySelector('#playerOverlayCount');
-    overlay.style.display = 'flex';
-    countEl.textContent = s;
-    playerOverlayTimer = setInterval(() => {
-      s -= 1;
-      if (s <= 0) {
-        clearInterval(playerOverlayTimer);
-        playerOverlayTimer = null;
-        overlay.style.display = 'none';
-        return;
-      }
-      countEl.textContent = s;
-      countEl.style.transform = 'scale(1.3)';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        countEl.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
-        countEl.style.transform = 'scale(1)';
-      }));
-    }, 1000);
-  });
-
   // ---- Question received ----
   const DIFF_STYLE = {
     'very easy': { bg: 'rgba(46,125,50,0.15)',  color: '#2e7d32', label: '⭐ Very Easy' },
@@ -244,6 +292,7 @@
   };
 
   socket.on('question', ({ index, total, durationMs, question, options, difficulty, maxPts }) => {
+    stopLobbyAnimations();
     currentIndex = index;
     lockedChoice = null;
     $('qIndex').textContent = `Q ${index + 1} / ${total}`;

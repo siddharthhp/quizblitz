@@ -110,9 +110,8 @@ input[type='text']:focus {
   box-shadow: 0 0 0 3px rgba(0,113,220,0.15);
 }
 input[type='text']::placeholder { color: #90a4ae; }
-input#code { font-size: 28px; letter-spacing: 0.3em; text-align: center; text-transform: uppercase; }
 
-/* Desktop join layout — two-column inputs + wide card */
+/* Desktop join layout */
 @media (min-width: 600px) {
   .landing main { margin-top: 64px; }
   .landing .card { padding: 40px 48px; }
@@ -122,10 +121,12 @@ input#code { font-size: 28px; letter-spacing: 0.3em; text-align: center; text-tr
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
+  .join-fields.single {
+    grid-template-columns: 1fr;
+  }
   .join-fields input { width: 100%; }
   .join-submit { margin-top: 4px; }
   .join-submit .primary { width: 100%; font-size: 18px; padding: 16px; border-radius: 12px; }
-  input#code { font-size: 22px; letter-spacing: 0.2em; }
 }
 
 button, .primary, .ghost {
@@ -326,13 +327,11 @@ pre { background: #f0f4f8; border: 1px solid var(--card-border); padding: 14px; 
   .landing h1.logo { font-size: 42px; text-align: center; margin-bottom: 6px; }
   .landing .tagline { font-size: 16px; text-align: center; margin-bottom: 28px; }
   .landing input[type='text'] { font-size: 18px; padding: 16px 18px; border-radius: 12px; }
-  #code { font-size: 26px !important; letter-spacing: 0.25em; text-align: center; }
   .landing .primary { font-size: 18px; padding: 16px; border-radius: 12px; width: 100%; }
   .landing .host-cta { margin-top: 24px; padding-top: 20px; text-align: center; }
   .landing .ghost { width: 100%; padding: 14px; font-size: 16px; }
-  /* keep join fields stacked on mobile */
-  .join-fields { display: flex; flex-direction: column; }
 }
+
 
 /* Desktop player enhancements */
 @media (min-width: 600px) {

@@ -18,6 +18,48 @@
       main {
         padding-bottom: max(60px, calc(env(safe-area-inset-bottom) + 24px));
       }
+
+      /* Lobby waiting screen */
+      #step-lobby { text-align: center; }
+      #lobby-inner { position: relative; }
+
+      /* Floating emoji burst */
+      #lobby-emoji-burst {
+        position: relative;
+        height: 60px;
+        margin-bottom: 12px;
+        overflow: visible;
+      }
+      .float-emoji {
+        position: absolute;
+        font-size: 28px;
+        animation: float-up 3s ease-in-out infinite;
+        opacity: 0;
+      }
+      @keyframes float-up {
+        0%   { opacity: 0; transform: translateY(20px) scale(0.7) rotate(-10deg); }
+        20%  { opacity: 1; transform: translateY(0)    scale(1)   rotate(5deg); }
+        80%  { opacity: 1; transform: translateY(-12px) scale(1)  rotate(-3deg); }
+        100% { opacity: 0; transform: translateY(-30px) scale(0.8) rotate(8deg); }
+      }
+
+      /* Pulsing dot */
+      .lobby-pulse {
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: pulse-dot 1.4s ease-in-out infinite;
+      }
+      @keyframes pulse-dot {
+        0%, 100% { transform: scale(1);   opacity: 1; }
+        50%       { transform: scale(1.6); opacity: 0.5; }
+      }
+
+      /* Tagline cycling */
+      #lobby-tagline {
+        transition: opacity 0.4s ease;
+      }
+      #lobby-tagline.fade-out { opacity: 0; }
     </style>
   </head>
   <body class="player">
@@ -38,14 +80,26 @@
     <main id="app">
       <section id="step-waiting" class="card">
         <h1>Connecting…</h1>
-        <p id="waitingMsg" class="msg">Joining room <strong id="waitingCode"></strong>…</p>
+        <p id="waitingMsg" class="msg">Connecting…</p>
       </section>
 
       <section id="step-lobby" class="card hidden">
-        <h1>You're in!</h1>
-        <p>Hang tight — waiting for the host to start.</p>
-        <p style="font-size:15px;color:var(--muted);"><span id="lobbyCount" style="color:var(--accent);font-weight:700;font-size:22px;">1</span> player(s) joined</p>
-        <p class="dim">Your answer history is saved on this device.</p>
+        <div id="lobby-inner">
+          <div id="lobby-emoji-burst" aria-hidden="true"></div>
+          <h1 style="margin-bottom:4px;">You're in! 🎉</h1>
+          <p id="lobby-tagline" style="font-size:16px;color:var(--muted);margin-bottom:16px;">Warming up the brain cells…</p>
+          <div id="lobby-fact-box" style="background:linear-gradient(135deg,rgba(0,113,220,0.07),rgba(255,194,32,0.1));border:1.5px solid rgba(0,113,220,0.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;min-height:56px;display:flex;align-items:center;gap:10px;">
+            <span id="lobby-fact-icon" style="font-size:24px;flex-shrink:0;">🧠</span>
+            <span id="lobby-fact-text" style="font-size:14px;color:var(--fg);line-height:1.5;font-style:italic;"></span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+            <div class="lobby-pulse"></div>
+            <span style="font-size:15px;color:var(--muted);">Waiting for host to start</span>
+          </div>
+          <p style="font-size:14px;color:var(--muted);text-align:center;margin-top:8px;">
+            <span id="lobbyCount" style="color:var(--accent);font-weight:700;font-size:20px;">1</span> player(s) in the room
+          </p>
+        </div>
       </section>
 
       <section id="step-question" class="card hidden">

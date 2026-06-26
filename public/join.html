@@ -11,15 +11,9 @@
       #step-join { text-align: center; }
       #step-join h1 { font-size: 36px; margin-bottom: 6px; }
 
-      .join-code {
-        font-size: 96px; letter-spacing: 0.18em; font-weight: 900;
-        margin: 10px 0 6px;
-        background: linear-gradient(90deg, #06d6a0, #118ab2, #c77dff);
-        -webkit-background-clip: text; background-clip: text; color: transparent;
-      }
       .join-url {
-        font-size: 22px; color: var(--muted); margin-bottom: 30px;
-        word-break: break-all;
+        font-size: 22px; color: var(--accent); margin-bottom: 30px;
+        word-break: break-all; font-weight: 700;
       }
       #qrContainer {
         border-radius: 16px;
@@ -47,7 +41,6 @@
       @media (min-width: 1200px) {
         main { max-width: 100%; padding: 40px 100px; }
         #step-join h1 { font-size: 52px; }
-        .join-code { font-size: 140px; }
         .join-url { font-size: 28px; }
         #qrContainer { padding: 20px; }
         #qrContainer img, #qrContainer canvas { width: 340px !important; height: 340px !important; }
@@ -73,18 +66,15 @@
     <main id="app">
       <section id="step-join" class="card">
         <h1>Scan to join!</h1>
-        <div id="joinCode" class="join-code">------</div>
-        <p class="join-url" id="joinUrl"></p>
         <div id="qrContainer"></div>
-        <p class="scan-label">📱 Scan the QR code or go to</p>
-        <p style="font-size:20px;font-weight:700;color:var(--accent);" id="siteUrl"></p>
+        <p class="scan-label">📱 Scan the QR code or visit</p>
+        <p class="join-url" id="joinUrl"></p>
         <p id="playerCount"><span id="count">0</span> players joined</p>
       </section>
 
       <section id="step-noroom" class="card hidden">
-        <h1>No room code</h1>
-        <p>Open this page with a <code>?room=XXXX</code> URL parameter.</p>
-        <p>Example: <code>/join.html?room=ABC123</code></p>
+        <h1>No active game</h1>
+        <p>Ask the host to open this page with a <code>?room=XXXX</code> URL parameter.</p>
       </section>
     </main>
 
@@ -103,9 +93,7 @@
       if (!room) { show('step-noroom'); return; }
 
       const joinDeeplink = `${location.origin}/?code=${room}`;
-      $('joinCode').textContent = room;
-      $('joinUrl').textContent = location.origin;
-      $('siteUrl').textContent = location.host;
+      $('joinUrl').textContent = joinDeeplink;
 
       show('step-join');
 

@@ -83,52 +83,29 @@
         color: #ffc220;
         font-weight: 700;
       }
-      /* Topics API section */
-      .topics-section {
-        margin-top: 18px;
-        padding-top: 16px;
-        border-top: 1.5px solid var(--card-border, #e0e7ef);
+      /* No-game state */
+      #no-game {
         text-align: center;
+        padding: 40px 24px;
       }
-      #topicsBtn {
-        background: #f0f4f8;
-        color: #0071dc;
-        border: 1.5px solid #0071dc;
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: background 0.15s, transform 0.08s;
+      #no-game .no-game-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        animation: float 3s ease-in-out infinite;
       }
-      #topicsBtn:hover { background: rgba(0,113,220,0.09); transform: translateY(-1px); }
-      #topicsBtn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-      #topicsResult {
-        margin-top: 12px;
-        font-size: 13px;
-        line-height: 1.6;
-        text-align: left;
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
       }
-      .topics-list {
-        list-style: none;
-        padding: 0;
-        margin: 8px 0 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+      #no-game h2 {
+        font-size: 24px;
+        margin: 0 0 10px;
+        color: #041e42;
       }
-      .topics-list li {
-        background: rgba(0,113,220,0.08);
-        color: #0052a3;
-        border: 1px solid rgba(0,113,220,0.2);
-        border-radius: 20px;
-        padding: 4px 12px;
-        font-size: 12px;
-        font-weight: 600;
+      #no-game p {
+        color: #546e7a;
+        font-size: 16px;
       }
-      .topics-unsupported { color: #888; font-style: italic; }
-      .topics-empty { color: #546e7a; }
-      .topics-error { color: #c0392b; }
     </style>
   </head>
   <body class="landing">
@@ -150,59 +127,65 @@
     </header>
 
     <main class="card">
-      <p class="tagline">Quiz o'clock. Are you ready? ⚡</p>
+      <!-- No-game fallback (shown when no ?code= param) -->
+      <div id="no-game" class="hidden">
+        <div class="no-game-icon">🎯</div>
+        <h2>No active game</h2>
+        <p>Ask the host to share the join link or scan the QR code on the big screen.</p>
+      </div>
 
-      <section class="join">
-        <h2>Join a game</h2>
-        <form id="joinForm">
-          <div class="join-fields">
-            <input
-              type="text"
-              id="code"
-              placeholder="ROOM CODE"
-              maxlength="6"
-              autocomplete="off"
-              autocapitalize="characters"
-              inputmode="text"
-              spellcheck="false"
-              required
-            />
-            <input
-              type="text"
-              id="name"
-              placeholder="Your name"
-              maxlength="24"
-              autocomplete="nickname"
-              autocapitalize="words"
-              inputmode="text"
-              required
-            />
-          </div>
-          <div class="avatar-section">
-            <div class="avatar-label">Pick your avatar</div>
-            <div id="avatarPicker" class="avatar-picker"></div>
-            <input type="hidden" id="avatarInput" value="🦁" />
-          </div>
-          <div class="join-submit">
-            <button type="submit" class="primary">Join →</button>
-          </div>
-        </form>
-        <div id="formMsg" class="msg" style="min-height:1.4em;margin-top:6px;"></div>
-      </section>
-      <p style="text-align:center;margin-top:16px;font-size:13px;color:#546e7a;">
-        <a href="/rules.html" style="color:#0071dc;font-weight:600;text-decoration:none;">📋 How to play &amp; Rules</a>
-      </p>
+      <!-- Join form (shown when ?code= param is present) -->
+      <div id="join-form-wrap">
+        <p class="tagline">Quiz o'clock. Are you ready? ⚡</p>
 
-      <!-- Chrome Topics API demo -->
-      <div class="topics-section">
-        <button type="button" id="topicsBtn">🔍 Show My Interest Topics</button>
-        <div id="topicsResult"></div>
+        <section class="join">
+          <h2>Join the game</h2>
+          <form id="joinForm">
+            <div class="join-fields single">
+              <input
+                type="text"
+                id="name"
+                placeholder="Your name"
+                maxlength="24"
+                autocomplete="nickname"
+                autocapitalize="words"
+                inputmode="text"
+                required
+              />
+            </div>
+            <div class="avatar-section">
+              <div class="avatar-label">Pick your avatar</div>
+              <div id="avatarPicker" class="avatar-picker"></div>
+              <input type="hidden" id="avatarInput" value="🦁" />
+            </div>
+            <div class="join-submit">
+              <button type="submit" class="primary">Join →</button>
+            </div>
+          </form>
+          <div id="formMsg" class="msg" style="min-height:1.4em;margin-top:6px;"></div>
+        </section>
+        <p style="text-align:center;margin-top:16px;font-size:13px;color:#546e7a;">
+          <a href="/rules.html" style="color:#0071dc;font-weight:600;text-decoration:none;">📋 How to play &amp; Rules</a>
+        </p>
       </div>
     </main>
 
     <script>
       (function () {
         const AVATARS = ['🦁','🐯','🐻','🦊','🐼','🐨','🐸','🐙','🦋','🦄','🐬','🦅','🐲','🦖','🌟','🔥'];
+
+        const params = new URLSearchParams(location.search);
+        const code = (params.get('code') || '').toUpperCase().trim();
+
+        // If no code in URL, show no-game state
+        if (!code) {
+          document.getElementById('join-form-wrap').classList.add('hidden');
+          document.getElementById('no-game').classList.remove('hidden');
+          return;
+        }
+
+        // Persist code for player.js
+        sessionStorage.setItem('qb:code', code);
 
         // Build avatar picker
         const picker = document.getElementById('avatarPicker');
@@ -224,24 +207,16 @@
         });
         avatarInput.value = savedAvatar;
 
-        const params = new URLSearchParams(location.search);
-        const preCode = (params.get('code') || '').toUpperCase().trim();
-        // Pre-fill code from URL param or last used session value
-        const savedCode = sessionStorage.getItem('qb:code') || '';
+        // Pre-fill saved name if available
         const savedName = sessionStorage.getItem('qb:name') || '';
-        if (preCode) {
-          document.getElementById('code').value = preCode;
-        } else if (savedCode) {
-          document.getElementById('code').value = savedCode;
-        }
         if (savedName) {
           document.getElementById('name').value = savedName;
-          // Focus name field so they can easily edit it
           document.getElementById('name').focus();
           document.getElementById('name').select();
-        } else if (preCode || savedCode) {
+        } else {
           document.getElementById('name').focus();
         }
+
         // Show error if redirected back from a failed join
         const joinErr = sessionStorage.getItem('qb:joinError');
         if (joinErr) {
@@ -250,87 +225,19 @@
           msg.textContent = '⚠️ ' + joinErr;
           msg.className = 'msg error';
         }
-      })();
 
-      // ---- Chrome Topics API ----
-      // Spec: https://privacysandbox.google.com/intl/en_us/news/topics-api
-      // Topic IDs are IAB taxonomy integers. This partial map covers the most
-      // common top-level categories (full list: ~469 entries).
-      const TOPICS_TAXONOMY = {
-        1: 'Arts & Entertainment', 2: 'Automotive', 3: 'Beauty & Fitness',
-        4: 'Books & Literature', 5: 'Business & Industrial', 6: 'Computers & Electronics',
-        7: 'Finance', 8: 'Food & Drink', 9: 'Games', 10: 'Health',
-        11: 'Hobbies & Leisure', 12: 'Home & Garden', 13: 'Internet & Telecom',
-        14: 'Jobs & Education', 15: 'Law & Government', 16: 'News',
-        17: 'Online Communities', 18: 'People & Society', 19: 'Pets & Animals',
-        20: 'Real Estate', 21: 'Reference', 22: 'Science', 23: 'Shopping',
-        24: 'Sports', 25: 'Travel', 26: 'World Localities',
-        // Common sub-topics
-        57: 'Action & Adventure Games', 58: 'Casual Games', 59: 'Music',
-        60: 'Movies', 61: 'Television', 62: 'Cooking & Recipes',
-        63: 'Fitness', 64: 'Basketball', 65: 'Soccer', 66: 'Tennis',
-        67: 'Swimming', 68: 'Running & Walking', 69: 'Technology News',
-        70: 'Mobile Phones', 71: 'Laptops & Notebooks', 72: 'Investing',
-        73: 'Banking', 74: 'Fashion & Style', 75: 'Hair Care',
-        76: 'Dog Care', 77: 'Cat Care', 78: 'Job Search',
-        79: 'Higher Education', 80: 'K-12 Education',
-      };
-
-      function topicLabel(id) {
-        return TOPICS_TAXONOMY[id] ? `${TOPICS_TAXONOMY[id]} (${id})` : `Topic #${id}`;
-      }
-
-      (function initTopicsBtn() {
-        const btn = document.getElementById('topicsBtn');
-        const result = document.getElementById('topicsResult');
-
-        // Use fetch with browsingTopics:true (HTTP header approach — no attestation needed)
-        // Browser automatically attaches Sec-Browsing-Topics header to the request.
-        // Requires Chrome 115+ with Privacy Sandbox enabled.
-        btn.addEventListener('click', async () => {
-          btn.disabled = true;
-          btn.textContent = 'Loading…';
-          result.innerHTML = '';
-          try {
-            const res = await fetch('/api/topics', { browsingTopics: true });
-            const { topics } = await res.json();
-
-            if (!topics || topics.length === 0) {
-              result.innerHTML = '<p class="topics-empty">No topics found yet. Chrome needs a few weeks of browsing history to populate interests.</p>';
-            } else {
-              const items = topics.map((id) => `<li>${topicLabel(id)}</li>`).join('');
-              result.innerHTML = `
-                <p style="color:#546e7a;font-size:12px;margin-bottom:4px;">
-                  Chrome reported <strong>${topics.length}</strong> interest topic${topics.length !== 1 ? 's' : ''}:
-                </p>
-                <ul class="topics-list">${items}</ul>
-                <p style="color:#aaa;font-size:11px;margin-top:8px;">
-                  Derived locally by Chrome — never sent to servers without your consent.
-                </p>`;
-            }
-          } catch (err) {
-            result.innerHTML = `<span class="topics-error">Error: ${err.message}</span>`;
-          } finally {
-            btn.disabled = false;
-            btn.textContent = '🔍 Show My Interest Topics';
-          }
+        document.getElementById('joinForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const name = document.getElementById('name').value.trim();
+          const avatar = document.getElementById('avatarInput').value;
+          const msg = document.getElementById('formMsg');
+          if (!name) { msg.textContent = 'Enter your name.'; msg.className = 'msg error'; return; }
+          msg.textContent = '';
+          sessionStorage.setItem('qb:name', name);
+          sessionStorage.setItem('qb:avatar', avatar);
+          location.href = '/player.html';
         });
       })();
-
-      document.getElementById('joinForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const code = document.getElementById('code').value.trim().toUpperCase();
-        const name = document.getElementById('name').value.trim();
-        const avatar = document.getElementById('avatarInput').value;
-        const msg = document.getElementById('formMsg');
-        if (!code) { msg.textContent = 'Enter a room code.'; msg.className = 'msg error'; return; }
-        if (!name) { msg.textContent = 'Enter your name.'; msg.className = 'msg error'; return; }
-        msg.textContent = '';
-        sessionStorage.setItem('qb:name', name);
-        sessionStorage.setItem('qb:code', code);
-        sessionStorage.setItem('qb:avatar', avatar);
-        location.href = '/player.html';
-      });
     </script>
   </body>
 </html>

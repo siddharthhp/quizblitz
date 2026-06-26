@@ -44,12 +44,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Required for Chrome Topics API — opt-in via Permissions-Policy header
-app.use((_req, res, next) => {
-  res.setHeader('Permissions-Policy', 'browsing-topics=(self)');
-  next();
-});
-
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 const upload = multer({
@@ -249,34 +243,6 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 
 app.get('/health', (_req, res) => res.json({ ok: true, rooms: rooms.size }));
 
-// Topics API endpoint — browser sends Sec-Browsing-Topics header automatically
-// when fetch is called with { browsingTopics: true } from the client.
-// We read that header, parse the topic IDs, and return them as JSON.
-// Response must include Observe-Browsing-Topics: ?1 to mark topics as observed.
-app.get('/api/topics', (req, res) => {
-  const header = req.headers['sec-browsing-topics'] || '';
-  res.setHeader('Observe-Browsing-Topics', '?1');
-
-  if (!header || header.startsWith('();p=')) {
-    // Empty/padded value = no topics available
-    return res.json({ topics: [] });
-  }
-
-  // Header format: "(325 42);v=chrome.1:1:1, ();p=P000000000"
-  // Extract all integers from parenthesised groups
-  const topicIds = [];
-  const matches = header.matchAll(/\(([^)]+)\)/g);
-  for (const match of matches) {
-    const nums = match[1].trim().split(/\s+/);
-    for (const n of nums) {
-      const id = parseInt(n, 10);
-      if (!isNaN(id)) topicIds.push(id);
-    }
-  }
-
-  res.json({ topics: topicIds });
-});
-
 // ---- Socket.io ----
 
 io.on('connection', (socket) => {
@@ -313,11 +279,7 @@ io.on('connection', (socket) => {
     if (room.state !== 'lobby') return ack?.({ ok: false, error: 'Already started' });
     if (room.players.size === 0) return ack?.({ ok: false, error: 'No players have joined' });
     room.currentIndex = 0;
-    // Broadcast 3-2-1 pre-game countdown, then start first question
-    const COUNTDOWN_SEC = 3;
-    io.to(room.code).emit('pre-question', { seconds: COUNTDOWN_SEC });
-    io.to(`display:${room.code}`).emit('pre-question', { seconds: COUNTDOWN_SEC });
-    setTimeout(() => startQuestion(room), COUNTDOWN_SEC * 1000);
+    startQuestion(room);
     ack?.({ ok: true });
   });
 
