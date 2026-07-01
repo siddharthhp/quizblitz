@@ -5,9 +5,10 @@
 //   - players { socketId -> { name, score, answers[] } }
 // Scoring: fixed 100 pts per correct answer + streak bonuses (+200 at 3-streak, +500 at 5-streak).
 
-const path = require('path');
-const fs   = require('fs');
-const http = require('http');
+const path   = require('path');
+const fs     = require('fs');
+const crypto = require('crypto');
+const http   = require('http');
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -115,10 +116,12 @@ function loadPersistedRooms() {
 function makeRoomCode() {
   let code;
   do {
-    code = '';
-    for (let i = 0; i < ROOM_CODE_LEN; i++) {
-      code += ROOM_CODE_ALPHABET[Math.floor(Math.random() * ROOM_CODE_ALPHABET.length)];
-    }
+    // Use cryptographically secure random bytes — unguessable even for
+    // 7-day teaser links that are the sole gate on a room.
+    const bytes = crypto.randomBytes(ROOM_CODE_LEN);
+    code = Array.from(bytes)
+      .map((b) => ROOM_CODE_ALPHABET[b % ROOM_CODE_ALPHABET.length])
+      .join('');
   } while (rooms.has(code));
   return code;
 }
@@ -143,7 +146,21 @@ function makeRoomObject(code, questions, hostSocketId, hostToken) {
 }
 
 function generateHostToken() {
-  return [...Array(32)].map(() => Math.floor(Math.random() * 36).toString(36)).join('');
+  // 32 cryptographically-random hex chars (128-bit entropy)
+  return crypto.randomBytes(16).toString('hex');
+}
+
+// Validate parsed question array — rejects malformed uploads
+function validateQuestions(questions) {
+  if (!Array.isArray(questions) || questions.length === 0) return 'No questions provided';
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    if (typeof q.question !== 'string' || !q.question.trim()) return `Question ${i + 1} has empty text`;
+    if (!Array.isArray(q.options) || q.options.length < 2) return `Question ${i + 1} needs at least 2 options`;
+    if (typeof q.correctIndex !== 'number' || q.correctIndex < 0 || q.correctIndex >= q.options.length)
+      return `Question ${i + 1} has invalid correctIndex`;
+  }
+  return null; // valid
 }
 
 // ---- Cleanup ----
@@ -301,8 +318,8 @@ io.on('connection', (socket) => {
 
   // Create a normal immediate lobby room
   socket.on('host:create', ({ questions } = {}, ack) => {
-    if (!Array.isArray(questions) || questions.length === 0)
-      return ack?.({ ok: false, error: 'No questions provided' });
+    const err = validateQuestions(questions);
+    if (err) return ack?.({ ok: false, error: err });
 
     const code      = makeRoomCode();
     const hostToken = generateHostToken();
@@ -318,8 +335,8 @@ io.on('connection', (socket) => {
 
   // Schedule a room — teaser state, long TTL, link shareable immediately
   socket.on('host:schedule', ({ questions, teaser } = {}, ack) => {
-    if (!Array.isArray(questions) || questions.length === 0)
-      return ack?.({ ok: false, error: 'No questions provided' });
+    const err = validateQuestions(questions);
+    if (err) return ack?.({ ok: false, error: err });
 
     const code      = makeRoomCode();
     const hostToken = generateHostToken();
@@ -445,8 +462,11 @@ io.on('connection', (socket) => {
     const player = room.players.get(socket.id);
     if (!player) return ack?.({ ok: false, error: 'Not in room' });
     if (player.answers[index]) return ack?.({ ok: false, error: 'Already answered' });
+    // Validate choice is a non-negative integer within the options range
+    const q = room.questions[index];
+    if (typeof choice !== 'number' || !Number.isInteger(choice) || choice < 0 || choice >= q.options.length)
+      return ack?.({ ok: false, error: 'Invalid choice' });
 
-    const q       = room.questions[index];
     const elapsed = Date.now() - room.questionStart;
     const correct = choice === q.correctIndex;
     const gained  = correct ? POINTS_PER_QUESTION : 0;

@@ -2,3 +2,5 @@ node_modules/
 .DS_Store
 .env
 *.log
+# Teaser room persistence — contains full question text + correct answers
+server/rooms.json
