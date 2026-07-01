@@ -226,6 +226,10 @@
     // Also populate the share link on the questions screen
     const shareLink = $('teaserShareLink');
     if (shareLink) { shareLink.href = teaserUrl; shareLink.textContent = teaserUrl; }
+
+    // Host bookmark link on questions screen
+    const hostLinkQ = $('hostResumeLinkQ');
+    if (hostLinkQ) { hostLinkQ.href = resumeUrl; hostLinkQ.textContent = resumeUrl; }
   }
 
   // ---- Create room (no questions needed) ----
@@ -336,6 +340,19 @@
     }
   });
 
+  // Copy host link button on questions screen
+  if ($('copyHostLinkBtn')) {
+    $('copyHostLinkBtn').addEventListener('click', async () => {
+      const link = $('hostResumeLinkQ')?.href;
+      if (!link) return;
+      try {
+        await navigator.clipboard.writeText(link);
+        $('copyHostLinkMsg').textContent = '✅ Copied!';
+        setTimeout(() => { $('copyHostLinkMsg').textContent = ''; }, 2000);
+      } catch { $('copyHostLinkMsg').textContent = link; }
+    });
+  }
+
   // Copy teaser link button on questions screen
   if ($('copyTeaserBtn')) {
     $('copyTeaserBtn').addEventListener('click', async () => {
@@ -346,6 +363,19 @@
         $('copyTeaserMsg').textContent = '✅ Copied!';
         setTimeout(() => { $('copyTeaserMsg').textContent = ''; }, 2000);
       } catch { $('copyTeaserMsg').textContent = link; }
+    });
+  }
+
+  // Copy host bookmark link button
+  if ($('copyHostLinkBtn')) {
+    $('copyHostLinkBtn').addEventListener('click', async () => {
+      const link = $('hostResumeLinkQ')?.href;
+      if (!link) return;
+      try {
+        await navigator.clipboard.writeText(link);
+        $('copyHostLinkMsg').textContent = '✅ Copied!';
+        setTimeout(() => { $('copyHostLinkMsg').textContent = ''; }, 2000);
+      } catch { $('copyHostLinkMsg').textContent = link; }
     });
   }
 
