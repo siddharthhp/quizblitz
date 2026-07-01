@@ -398,6 +398,24 @@ io.on('connection', (socket) => {
   socket.data.role     = null;
   socket.data.roomCode = null;
 
+  // Create an empty lobby room — no questions needed yet.
+  // Broadcasts code to all teaser page watchers immediately.
+  // Host uploads questions separately via host:setQuestions before starting.
+  socket.on('host:createEmpty', (_payload, ack) => {
+    const code      = makeRoomCode();
+    const hostToken = generateHostToken();
+    const room      = makeRoomObject(code, [], socket.id, hostToken);
+    room.expiresAt  = Date.now() + HOST_RECONNECT_GRACE_MS;
+    room.cleanupTimer = scheduleRoomCleanup(code, HOST_RECONNECT_GRACE_MS);
+    rooms.set(code, room);
+    socket.join(code);
+    socket.data.role     = 'host';
+    socket.data.roomCode = code;
+    // Broadcast to all teaser page watchers so they get the join link
+    io.to('global:teaser').emit('global:roomReady', { code });
+    ack?.({ ok: true, code, hostToken });
+  });
+
   // Create a normal immediate lobby room
   socket.on('host:create', ({ questions } = {}, ack) => {
     const err = validateQuestions(questions);

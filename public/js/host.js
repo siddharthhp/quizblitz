@@ -232,13 +232,16 @@
     if (hostLinkQ) { hostLinkQ.href = resumeUrl; hostLinkQ.textContent = resumeUrl; }
   }
 
-  // ---- Create room (no questions needed) ----
+  // ---- Create room ----
+  // Creates a lobby room directly and broadcasts code to all teaser page watchers.
+  // Host uploads questions on the same screen, then clicks Start Game when ready.
   $('createRoomBtn').addEventListener('click', () => {
     const btn = $('createRoomBtn');
     const msg = $('uploadMsg');
     btn.disabled    = true;
     btn.textContent = '⏳ Creating room…';
-    socket.emit('host:schedule', {}, (ack) => {
+    // Use host:createEmpty — creates lobby room without questions, broadcasts global:roomReady
+    socket.emit('host:createEmpty', {}, (ack) => {
       btn.disabled    = false;
       btn.textContent = '🚀 Create Quiz Room';
       if (!ack?.ok) {
@@ -248,8 +251,8 @@
       }
       saveHostSession(ack.code, ack.hostToken);
       setTeaserLinks(ack.code, ack.hostToken);
-      setStatus('Scheduled');
-      show('step-questions'); // go to question upload screen
+      setStatus('Room open');
+      show('step-questions');
     });
   });
 
@@ -322,7 +325,23 @@
           msg.className   = 'msg error';
           return;
         }
-        saveQuestionsLocally(data.questions); // persist locally for auto-recreate on server restart
+        saveQuestionsLocally(data.questions);
+        msg.textContent = `✅ ${ack.total} questions loaded! Switch to the lobby when players start joining.`;
+        // Show go-to-lobby button
+        let lobbyBtn = document.getElementById('goToLobbyBtn');
+        if (!lobbyBtn) {
+          lobbyBtn = document.createElement('button');
+          lobbyBtn.id = 'goToLobbyBtn';
+          lobbyBtn.className = 'primary';
+          lobbyBtn.style.cssText = 'margin-top:12px;width:100%;';
+          lobbyBtn.textContent = 'Go to lobby →';
+          lobbyBtn.addEventListener('click', () => {
+            setDisplayLinks(roomCode);
+            setStatus('Lobby');
+            show('step-lobby');
+          });
+          msg.parentNode.appendChild(lobbyBtn);
+        }
         msg.textContent = `✅ ${ack.total} questions loaded! Ready to go.`;
         msg.className   = 'msg ok';
         const statusSpan = $('questionsStatus');
