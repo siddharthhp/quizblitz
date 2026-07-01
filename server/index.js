@@ -16,6 +16,26 @@ const { Server } = require('socket.io');
 
 const { parseDocxBuffer } = require('./parser');
 
+// Copy CDN-sourced browser bundles to public/js at startup.
+// This ensures QR codes and confetti work even on networks that block CDNs.
+const BUNDLE_COPIES = [
+  { src: 'qrcode/build/qrcode.min.js',                    dst: 'qrcode.min.js' },
+  { src: 'canvas-confetti/dist/confetti.browser.min.js',  dst: 'confetti.browser.min.js' },
+];
+for (const { src, dst } of BUNDLE_COPIES) {
+  try {
+    const srcPath = require.resolve(src);
+    const dstPath = path.join(__dirname, '..', 'public', 'js', dst);
+    if (!fs.existsSync(dstPath) ||
+        fs.statSync(srcPath).mtimeMs > fs.statSync(dstPath).mtimeMs) {
+      fs.copyFileSync(srcPath, dstPath);
+      console.log(`Bundled ${dst} → public/js/`);
+    }
+  } catch (e) {
+    console.warn(`Could not bundle ${dst}:`, e.message);
+  }
+}
+
 const PORT = process.env.PORT || 3000;
 const DEFAULT_QUESTION_DURATION_MS = 20_000;
 

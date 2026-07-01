@@ -88,7 +88,7 @@
     </main>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="/js/qrcode.min.js"></script>
     <script>
     (() => {
       const $ = (id) => document.getElementById(id);
@@ -106,15 +106,17 @@
 
       show('step-join');
 
-      // Generate QR code — qrcodejs uses a div container, not a canvas
+      // Generate QR code using local qrcode bundle (same as host.js)
       const qrContainer = $('qrContainer');
-      new QRCode(qrContainer, {
-        text: joinDeeplink,
+      QRCode.toCanvas(joinDeeplink, {
         width: 260,
-        height: 260,
-        colorDark: '#1a1638',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M,
+        margin: 2,
+        color: { dark: '#1a1638', light: '#ffffff' },
+      }, (err, canvas) => {
+        if (!err) {
+          canvas.style.borderRadius = '8px';
+          qrContainer.appendChild(canvas);
+        }
       });
 
       // Connect socket to display channel to get live player count

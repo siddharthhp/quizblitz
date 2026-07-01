@@ -4,3 +4,6 @@ node_modules/
 *.log
 # Teaser room persistence — contains full question text + correct answers
 server/rooms.json
+# Browser bundles copied from npm at server startup (generated, not committed)
+public/js/qrcode.min.js
+public/js/confetti.browser.min.js
