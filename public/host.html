@@ -78,6 +78,16 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
           <p class="dim" style="margin-bottom:12px;font-size:14px;">Room <strong id="resumeCode"></strong> is waiting. Reclaim it to start when you're ready.</p>
           <button id="resumeBtn" class="primary" style="font-size:14px;padding:12px 18px;min-height:44px;">Resume scheduled quiz →</button>
         </div>
+        <!-- Manual resume fallback -->
+        <div style="margin-top:12px;">
+          <button id="manualResumeToggle" class="ghost" style="font-size:13px;padding:8px 14px;">🔑 Resume with host link</button>
+          <div id="manualResumeBox" class="hidden" style="margin-top:10px;padding:14px 16px;border-radius:10px;background:#f8fafc;border:1px solid #d0dde8;">
+            <p style="font-size:13px;color:#546e7a;margin-bottom:8px;">Paste your host resume URL (from the teaser screen) or enter code + token manually:</p>
+            <input type="text" id="manualResumeUrl" placeholder="https://…/host.html?code=XXX&token=YYY  or just paste code:token" style="font-size:13px;padding:10px 12px;width:100%;margin-bottom:8px;" />
+            <button id="manualResumeBtn" class="primary" style="font-size:13px;padding:10px 16px;min-height:44px;">Resume →</button>
+            <div id="manualResumeMsg" class="msg" style="margin-top:6px;font-size:13px;"></div>
+          </div>
+        </div>
       </section>
 
       <!-- Step 2: lobby -->
@@ -123,9 +133,10 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
           <div style="flex:1;min-width:200px;">
             <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Share this link</div>
             <a id="teaserLinkAnchor" href="#" target="_blank" style="font-size:15px;font-weight:700;color:var(--accent);word-break:break-all;text-decoration:none;display:block;margin-bottom:12px;"></a>
-            <div id="teaserTokenBox" style="background:#f0f4f8;border-radius:8px;padding:10px 14px;font-size:12px;color:#546e7a;line-height:1.6;">
-              🔑 <strong>Your host token is saved in this browser.</strong><br>
-              On quiz day, open <strong>/host.html</strong> and click <strong>"Resume scheduled quiz"</strong> to take back control.
+            <div id="teaserTokenBox" style="background:#f0f4f8;border-radius:8px;padding:10px 14px;font-size:12px;color:#546e7a;line-height:1.7;">
+              🔑 <strong>Bookmark this host link to resume from any browser:</strong><br>
+              <a id="hostResumeUrl" href="#" style="color:#0071dc;font-weight:700;word-break:break-all;font-size:12px;"></a><br>
+              <span style="font-size:11px;color:#90a4ae;">On quiz day, open this link → you'll land directly on the control screen.</span>
             </div>
           </div>
         </div>

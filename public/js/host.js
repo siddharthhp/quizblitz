@@ -26,8 +26,39 @@
     return { code: localStorage.getItem(CODE_KEY), token: localStorage.getItem(TOKEN_KEY) };
   }
 
-  // Check for a saved scheduled session on page load
-  (async function checkResumeSession() {
+  // ---- Auto-resume from URL params (?code=X&token=Y) ----
+  // This lets the host bookmark a direct link that works from any browser/device.
+  (async function checkUrlResume() {
+    const urlParams = new URLSearchParams(location.search);
+    const urlCode  = (urlParams.get('code')  || '').toUpperCase().trim();
+    const urlToken = (urlParams.get('token') || '').trim();
+    if (urlCode && urlToken) {
+      // Auto-resume immediately from URL
+      socket.on('connect', () => {
+        socket.emit('host:resume', { code: urlCode, token: urlToken }, (ack) => {
+          if (!ack?.ok) {
+            $('uploadMsg').textContent = `⚠️ Could not resume room ${urlCode}: ${ack?.error || 'Invalid token'}`;
+            $('uploadMsg').className = 'msg error';
+            return;
+          }
+          saveHostSession(ack.code, urlToken);
+          roomCode = ack.code;
+          if (ack.state === 'teaser') {
+            setTeaserLinks(ack.code, urlToken);
+            setStatus('Scheduled');
+            show('step-teaser');
+          } else {
+            $('questionTotal').textContent = ack.total;
+            setDisplayLinks(ack.code);
+            setStatus('Lobby');
+            show('step-lobby');
+          }
+        });
+      });
+      return; // skip localStorage check
+    }
+
+    // Check localStorage for a saved session
     const { code, token } = getSavedSession();
     if (!code || !token) return;
     try {
@@ -38,11 +69,58 @@
         $('resumeCode').textContent = code;
         $('resumeBox').classList.remove('hidden');
       } else if (data.state === 'lobby' || data.state === 'question') {
-        // Game already started — session is stale
         clearHostSession();
       }
     } catch { /* server unreachable */ }
   })();
+
+  // ---- Manual resume toggle ----
+  $('manualResumeToggle').addEventListener('click', () => {
+    $('manualResumeBox').classList.toggle('hidden');
+  });
+
+  $('manualResumeBtn').addEventListener('click', () => {
+    const raw   = ($('manualResumeUrl').value || '').trim();
+    const msg   = $('manualResumeMsg');
+    let code, token;
+    // Accept full URL or "code:token" shorthand
+    try {
+      const url   = new URL(raw);
+      code  = (url.searchParams.get('code')  || '').toUpperCase().trim();
+      token = (url.searchParams.get('token') || '').trim();
+    } catch {
+      // Try "code:token" format
+      const parts = raw.split(':');
+      code  = (parts[0] || '').toUpperCase().trim();
+      token = (parts[1] || '').trim();
+    }
+    if (!code || !token) {
+      msg.textContent = 'Paste the full host URL or enter code:token';
+      msg.className = 'msg error';
+      return;
+    }
+    msg.textContent = 'Connecting…';
+    msg.className = 'msg';
+    socket.emit('host:resume', { code, token }, (ack) => {
+      if (!ack?.ok) {
+        msg.textContent = `❌ ${ack?.error || 'Could not resume'}`;
+        msg.className = 'msg error';
+        return;
+      }
+      saveHostSession(ack.code, token);
+      roomCode = ack.code;
+      if (ack.state === 'teaser') {
+        setTeaserLinks(ack.code, token);
+        setStatus('Scheduled');
+        show('step-teaser');
+      } else {
+        $('questionTotal').textContent = ack.total;
+        setDisplayLinks(ack.code);
+        setStatus('Lobby');
+        show('step-lobby');
+      }
+    });
+  });
 
   $('resumeBtn').addEventListener('click', () => {
     const { code, token } = getSavedSession();
@@ -55,7 +133,7 @@
       }
       roomCode = ack.code;
       if (ack.state === 'teaser') {
-        setTeaserLinks(ack.code);
+        setTeaserLinks(ack.code, token);
         setStatus('Scheduled');
         show('step-teaser');
       } else {
@@ -91,11 +169,17 @@
     }
   }
 
-  function setTeaserLinks(code) {
+  function setTeaserLinks(code, token) {
     roomCode = code;
     const teaserUrl = `${location.origin}/teaser.html?code=${code}`;
     const anchor    = $('teaserLinkAnchor');
     if (anchor) { anchor.href = teaserUrl; anchor.textContent = teaserUrl; }
+
+    // Host resume URL — bookmark this to resume from any browser
+    const tok = token || getSavedSession().token || '';
+    const resumeUrl = `${location.origin}/host.html?code=${code}&token=${tok}`;
+    const resumeAnchor = $('hostResumeUrl');
+    if (resumeAnchor) { resumeAnchor.href = resumeUrl; resumeAnchor.textContent = resumeUrl; }
 
     const qrContainer = $('teaserQrCanvas');
     if (qrContainer && typeof QRCode !== 'undefined') {
@@ -225,7 +309,7 @@
     socket.emit('host:schedule', { questions: parsedQuestions }, (ack) => {
       if (!ack?.ok) { alert(ack?.error || 'Could not schedule'); return; }
       saveHostSession(ack.code, ack.hostToken);
-      setTeaserLinks(ack.code);
+      setTeaserLinks(ack.code, ack.hostToken);
       setStatus('Scheduled');
       show('step-teaser');
     });
