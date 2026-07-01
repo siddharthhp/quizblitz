@@ -10,10 +10,67 @@
   let countdownTimer = null;
   let roomCode = null;
 
+  // ---- Host token (for resuming scheduled/teaser rooms) ----
+  const TOKEN_KEY = 'bb:hostToken';
+  const CODE_KEY  = 'bb:hostCode';
+
+  function saveHostSession(code, token) {
+    localStorage.setItem(CODE_KEY, code);
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+  function clearHostSession() {
+    localStorage.removeItem(CODE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+  }
+  function getSavedSession() {
+    return { code: localStorage.getItem(CODE_KEY), token: localStorage.getItem(TOKEN_KEY) };
+  }
+
+  // Check for a saved scheduled session on page load
+  (async function checkResumeSession() {
+    const { code, token } = getSavedSession();
+    if (!code || !token) return;
+    try {
+      const res = await fetch(`/api/room/${code}`);
+      if (!res.ok) { clearHostSession(); return; }
+      const data = await res.json();
+      if (data.state === 'teaser') {
+        $('resumeCode').textContent = code;
+        $('resumeBox').classList.remove('hidden');
+      } else if (data.state === 'lobby' || data.state === 'question') {
+        // Game already started — session is stale
+        clearHostSession();
+      }
+    } catch { /* server unreachable */ }
+  })();
+
+  $('resumeBtn').addEventListener('click', () => {
+    const { code, token } = getSavedSession();
+    if (!code || !token) return;
+    socket.emit('host:resume', { code, token }, (ack) => {
+      if (!ack?.ok) {
+        alert(ack?.error || 'Could not resume');
+        clearHostSession();
+        return;
+      }
+      roomCode = ack.code;
+      if (ack.state === 'teaser') {
+        setTeaserLinks(ack.code);
+        setStatus('Scheduled');
+        show('step-teaser');
+      } else {
+        $('questionTotal').textContent = ack.total;
+        setDisplayLinks(ack.code);
+        setStatus('Lobby');
+        show('step-lobby');
+      }
+    });
+  });
+
   function setDisplayLinks(code) {
     roomCode = code;
     const displayUrl = `/leaderboard.html?room=${code}`;
-    const joinUrl = `${location.origin}/?code=${code}`;
+    const joinUrl    = `${location.origin}/?code=${code}`;
 
     ['displayUrl', 'displayUrlQ', 'displayUrlR', 'displayUrlF'].forEach((id) => {
       const el = $(id);
@@ -22,14 +79,9 @@
       if (id === 'displayUrl') el.textContent = `${location.origin}${displayUrl}`;
     });
 
-    // Join link anchor
     const anchor = $('joinLinkAnchor');
-    if (anchor) {
-      anchor.href = joinUrl;
-      anchor.textContent = joinUrl;
-    }
+    if (anchor) { anchor.href = joinUrl; anchor.textContent = joinUrl; }
 
-    // QR code
     const qrContainer = $('qrCanvas');
     if (qrContainer && typeof QRCode !== 'undefined') {
       qrContainer.innerHTML = '';
@@ -39,12 +91,27 @@
     }
   }
 
+  function setTeaserLinks(code) {
+    roomCode = code;
+    const teaserUrl = `${location.origin}/teaser.html?code=${code}`;
+    const anchor    = $('teaserLinkAnchor');
+    if (anchor) { anchor.href = teaserUrl; anchor.textContent = teaserUrl; }
+
+    const qrContainer = $('teaserQrCanvas');
+    if (qrContainer && typeof QRCode !== 'undefined') {
+      qrContainer.innerHTML = '';
+      QRCode.toCanvas(teaserUrl, { width: 140, margin: 1, color: { dark: '#041e42', light: '#ffffff' } }, (err, canvas) => {
+        if (!err) qrContainer.appendChild(canvas);
+      });
+    }
+  }
+
   // ---- File picker UX ----
-  const fileInput = $('file');
-  const fileLabel = $('fileLabel');
+  const fileInput    = $('file');
+  const fileLabel    = $('fileLabel');
   const fileLabelText = $('fileLabelText');
-  const fileSpinner = $('fileSpinner');
-  const parseBtn = $('parseBtn');
+  const fileSpinner  = $('fileSpinner');
+  const parseBtn     = $('parseBtn');
 
   fileLabel.addEventListener('dragover', (e) => { e.preventDefault(); fileLabel.classList.add('drag'); });
   fileLabel.addEventListener('dragleave', () => fileLabel.classList.remove('drag'));
@@ -52,29 +119,20 @@
     e.preventDefault();
     fileLabel.classList.remove('drag');
     const f = e.dataTransfer.files[0];
-    if (f && f.name.endsWith('.docx')) {
-      setFileReady(f);
-    } else {
-      fileLabelText.textContent = '❌ Only .docx files allowed';
-      fileLabel.classList.remove('ready');
-    }
+    if (f && f.name.endsWith('.docx')) setFileReady(f);
+    else { fileLabelText.textContent = '❌ Only .docx files allowed'; fileLabel.classList.remove('ready'); }
   });
 
   fileInput.addEventListener('change', () => {
     const f = fileInput.files[0];
     if (!f) return;
-    // Show spinner while browser reads the file into memory
     fileLabel.classList.remove('ready', 'drag');
     fileLabelText.textContent = `Loading "${f.name}"…`;
     fileSpinner.classList.remove('hidden');
     parseBtn.disabled = true;
-    // Use FileReader to confirm file is readable before enabling Parse
     const reader = new FileReader();
-    reader.onload = () => setFileReady(f);
-    reader.onerror = () => {
-      fileSpinner.classList.add('hidden');
-      fileLabelText.textContent = '❌ Could not read file';
-    };
+    reader.onload  = () => setFileReady(f);
+    reader.onerror = () => { fileSpinner.classList.add('hidden'); fileLabelText.textContent = '❌ Could not read file'; };
     reader.readAsArrayBuffer(f);
   });
 
@@ -85,7 +143,9 @@
     parseBtn.disabled = false;
   }
 
-  // Step 1: upload
+  // ---- Upload & create room ----
+  let parsedQuestions = null;
+
   $('uploadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const file = $('file').files[0];
@@ -93,58 +153,59 @@
 
     const btn = parseBtn;
     const msg = $('uploadMsg');
-    btn.disabled = true;
+    btn.disabled    = true;
     btn.textContent = '⏳ Parsing…';
     msg.textContent = `Uploading "${file.name}"…`;
-    msg.className = 'msg';
+    msg.className   = 'msg';
 
     const fd = new FormData();
     fd.append('file', file);
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const res  = await fetch('/api/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
 
+      parsedQuestions = data.questions;
       msg.textContent = `✅ Parsed ${data.questions.length} questions! Creating room…`;
-      msg.className = 'msg ok';
+      msg.className   = 'msg ok';
       btn.textContent = '🔄 Creating room…';
 
       socket.emit('host:create', { questions: data.questions }, (ack) => {
-        btn.disabled = false;
+        btn.disabled    = false;
         btn.textContent = 'Parse';
         if (!ack?.ok) {
           msg.textContent = `❌ ${ack?.error || 'Could not create room'}`;
-          msg.className = 'msg error';
+          msg.className   = 'msg error';
           parseBtn.disabled = false;
           return;
         }
+        saveHostSession(ack.code, ack.hostToken);
         $('questionTotal').textContent = ack.total;
         setDisplayLinks(ack.code);
         setStatus('Lobby');
         show('step-lobby');
       });
     } catch (err) {
-      btn.disabled = false;
+      btn.disabled    = false;
       btn.textContent = 'Parse';
       parseBtn.disabled = false;
       msg.textContent = `❌ ${err.message || 'Upload failed'}`;
-      msg.className = 'msg error';
+      msg.className   = 'msg error';
     }
   });
 
-  // Lobby — live join feed
+  // ---- Lobby ----
   const seenPlayers = new Set();
   socket.on('roster', ({ players }) => {
     $('playerCount').textContent = players.length;
     $('startBtn').disabled = players.length === 0;
     const list = $('playerList');
-    // Animate newly joined players
     players.forEach((p) => {
       if (!seenPlayers.has(p.name)) {
         seenPlayers.add(p.name);
         const li = document.createElement('li');
         li.textContent = `${p.avatar || ''} ${p.name}`.trim();
-        list.prepend(li); // newest at top
+        list.prepend(li);
       }
     });
   });
@@ -155,11 +216,43 @@
     });
   });
 
-  // Question
+  // Schedule for later — flips room to teaser state
+  $('scheduleBtn').addEventListener('click', () => {
+    if (!roomCode || !parsedQuestions) return;
+    const { token } = getSavedSession();
+    // Use host:schedule to create a new teaser room with the already-parsed questions
+    // (We already have a lobby room; schedule creates a replacement teaser room)
+    socket.emit('host:schedule', { questions: parsedQuestions }, (ack) => {
+      if (!ack?.ok) { alert(ack?.error || 'Could not schedule'); return; }
+      saveHostSession(ack.code, ack.hostToken);
+      setTeaserLinks(ack.code);
+      setStatus('Scheduled');
+      show('step-teaser');
+    });
+  });
+
+  // ---- Teaser screen ----
+  $('teaserStartBtn').addEventListener('click', () => {
+    socket.emit('host:start', null, (ack) => {
+      if (!ack?.ok) { alert(ack?.error || 'Could not start'); return; }
+      if (ack.teaser) {
+        // Room flipped to lobby — now waiting for players to join
+        setDisplayLinks(roomCode);
+        const joinUrl = `${location.origin}/?code=${roomCode}`;
+        $('joinLinkAnchor').href        = joinUrl;
+        $('joinLinkAnchor').textContent = joinUrl;
+        $('questionTotal').textContent  = '?';
+        setStatus('Lobby (game opened)');
+        show('step-lobby');
+      }
+    });
+  });
+
+  // ---- Question ----
   socket.on('question', ({ index, total, durationMs, question, options }) => {
     setStatus(`Q ${index + 1} / ${total}`);
     $('qIndex').textContent = `Q ${index + 1} / ${total}`;
-    $('qText').textContent = question;
+    $('qText').textContent  = question;
     const list = $('qOptions');
     list.innerHTML = '';
     options.forEach((text, i) => {
@@ -172,7 +265,7 @@
     startCountdown(Math.round(durationMs / 1000));
   });
 
-$('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
+  $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
 
   function endQuiz() {
     if (!confirm('End the quiz now? This will show final standings to all players.')) return;
@@ -183,9 +276,9 @@ $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
   $('endQuizBtnQ').addEventListener('click', endQuiz);
   $('endQuizBtnR').addEventListener('click', endQuiz);
 
-  // Reveal
+  // ---- Reveal ----
   socket.on('reveal', (data) => {
-    if (!('counts' in data)) return; // player-shaped reveal, ignore
+    if (!('counts' in data)) return;
     stopCountdown();
     const optNodes = Array.from($('qOptions').children);
     const list = $('revealOptions');
@@ -200,8 +293,6 @@ $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
       li.classList.add(i === data.correctIndex ? 'correct' : 'wrong');
       list.appendChild(li);
     });
-
-    // Fastest answer callout
     const fastestEl = $('fastestCallout');
     if (fastestEl) {
       if (data.fastest) {
@@ -212,16 +303,16 @@ $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
         fastestEl.classList.add('hidden');
       }
     }
-
     setStatus('Reveal');
     show('step-reveal');
   });
 
   $('nextBtn').addEventListener('click', () => socket.emit('host:next'));
 
-  // Finished
+  // ---- Finished ----
   socket.on('finished', ({ leaderboard }) => {
     stopCountdown();
+    clearHostSession();
     const lb = $('finalBoard');
     lb.innerHTML = '';
     leaderboard.forEach((p) => {
@@ -235,7 +326,7 @@ $('skipBtn').addEventListener('click', () => socket.emit('host:skip'));
 
   socket.on('disconnect', () => setStatus('Disconnected'));
 
-  // Helpers
+  // ---- Helpers ----
   function startCountdown(seconds) {
     stopCountdown();
     let s = seconds;

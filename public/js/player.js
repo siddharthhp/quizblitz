@@ -228,6 +228,11 @@
     socket.emit('player:join', { code, name, avatar }, (ack) => {
       if (!ack?.ok) {
         const err = ack?.error || 'Could not join room';
+        if (err === 'teaser') {
+          // Room not open yet — send back to teaser page
+          location.replace(`/teaser.html?code=${code}`);
+          return;
+        }
         // Store error and redirect back to join page — code + name will be pre-filled
         sessionStorage.setItem('qb:joinError', err);
         location.href = '/';

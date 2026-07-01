@@ -171,18 +171,30 @@
     </main>
 
     <script>
-      (function () {
+      (async function () {
         const AVATARS = ['🦁','🐯','🐻','🦊','🐼','🐨','🐸','🐙','🦋','🦄','🐬','🦅','🐲','🦖','🌟','🔥'];
 
         const params = new URLSearchParams(location.search);
         const code = (params.get('code') || '').toUpperCase().trim();
 
-        // If no code in URL, show no-game state
+        // No code — show no-game state
         if (!code) {
           document.getElementById('join-form-wrap').classList.add('hidden');
           document.getElementById('no-game').classList.remove('hidden');
           return;
         }
+
+        // Check room state — redirect to teaser if game not yet open
+        try {
+          const res = await fetch(`/api/room/${code}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.state === 'teaser') {
+              location.replace(`/teaser.html?code=${code}`);
+              return;
+            }
+          }
+        } catch { /* server unreachable — show join form anyway */ }
 
         // Persist code for player.js
         sessionStorage.setItem('qb:code', code);

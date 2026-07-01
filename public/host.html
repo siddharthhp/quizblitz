@@ -54,6 +54,12 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
           <button type="submit" id="parseBtn" class="primary" disabled>Parse</button>
         </form>
         <div id="uploadMsg" class="msg" style="margin-top:14px;font-size:16px;min-height:2em;"></div>
+        <!-- Resume a previously scheduled quiz -->
+        <div id="resumeBox" class="hidden" style="margin-top:20px;padding:16px 20px;border-radius:12px;background:rgba(255,194,32,0.1);border:1.5px solid rgba(255,194,32,0.5);">
+          <p style="font-weight:700;margin-bottom:10px;font-size:15px;">🗓️ You have a scheduled quiz</p>
+          <p class="dim" style="margin-bottom:12px;font-size:14px;">Room <strong id="resumeCode"></strong> is waiting. Reclaim it to start when you're ready.</p>
+          <button id="resumeBtn" class="primary" style="font-size:14px;padding:10px 18px;">Resume scheduled quiz →</button>
+        </div>
       </section>
 
       <!-- Step 2: lobby -->
@@ -81,7 +87,34 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
             <h2>Quiz</h2>
             <p><strong id="questionTotal">0</strong> questions loaded.</p>
             <button id="startBtn" class="primary" disabled>Start Game</button>
+            <button id="scheduleBtn" class="ghost" style="margin-top:10px;width:100%;">📅 Schedule for later</button>
           </div>
+        </div>
+      </section>
+
+      <!-- Step 2b: teaser active (scheduled game) -->
+      <section id="step-teaser" class="card hidden">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">
+          <span style="font-size:28px;">🗓️</span>
+          <h1 style="margin:0;">Quiz scheduled!</h1>
+        </div>
+        <p class="dim" style="margin-bottom:16px;">Players who visit the link see a teaser countdown page. Start the quiz whenever you're ready — they'll flip over instantly.</p>
+
+        <div id="teaserInviteBox" style="margin:16px 0;padding:20px 24px;border-radius:14px;background:linear-gradient(135deg,rgba(0,113,220,0.07),rgba(255,194,32,0.07));border:2px solid #0071dc;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+          <div id="teaserQrCanvas" style="flex-shrink:0;background:#fff;padding:8px;border-radius:10px;line-height:0;"></div>
+          <div style="flex:1;min-width:200px;">
+            <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Share this link</div>
+            <a id="teaserLinkAnchor" href="#" target="_blank" style="font-size:15px;font-weight:700;color:var(--accent);word-break:break-all;text-decoration:none;display:block;margin-bottom:12px;"></a>
+            <div id="teaserTokenBox" style="background:#f0f4f8;border-radius:8px;padding:10px 14px;font-size:12px;color:#546e7a;line-height:1.6;">
+              🔑 <strong>Your host token is saved in this browser.</strong><br>
+              On quiz day, open <strong>/host.html</strong> and click <strong>"Resume scheduled quiz"</strong> to take back control.
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+          <button id="teaserStartBtn" class="primary">▶ Start Quiz Now</button>
+          <p class="dim" style="margin:auto 0;font-size:13px;">Players on the teaser page will flip over automatically.</p>
         </div>
       </section>
 
