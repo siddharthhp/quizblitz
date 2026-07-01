@@ -16,24 +16,17 @@ const { Server } = require('socket.io');
 
 const { parseDocxBuffer } = require('./parser');
 
-// Copy CDN-sourced browser bundles to public/js at startup.
-// This ensures QR codes and confetti work even on networks that block CDNs.
-const BUNDLE_COPIES = [
-  { src: 'qrcode/build/qrcode.min.js',                    dst: 'qrcode.min.js' },
-  { src: 'canvas-confetti/dist/confetti.browser.min.js',  dst: 'confetti.browser.min.js' },
-];
-for (const { src, dst } of BUNDLE_COPIES) {
-  try {
-    const srcPath = require.resolve(src);
-    const dstPath = path.join(__dirname, '..', 'public', 'js', dst);
-    if (!fs.existsSync(dstPath) ||
-        fs.statSync(srcPath).mtimeMs > fs.statSync(dstPath).mtimeMs) {
-      fs.copyFileSync(srcPath, dstPath);
-      console.log(`Bundled ${dst} → public/js/`);
-    }
-  } catch (e) {
-    console.warn(`Could not bundle ${dst}:`, e.message);
-  }
+// Serve canvas-confetti browser bundle from node_modules
+// QR codes are generated server-side via /api/qr — no client bundle needed
+try {
+  const confettiPath = require.resolve('canvas-confetti/dist/confetti.browser.js');
+  app.get('/js/confetti.browser.min.js', (_req, res) => {
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.sendFile(confettiPath);
+  });
+} catch (e) {
+  console.warn('canvas-confetti not found:', e.message);
 }
 
 const PORT = process.env.PORT || 3000;
@@ -329,6 +322,28 @@ app.get('/api/room/:code', (req, res) => {
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true, rooms: rooms.size }));
+
+// QR code endpoint — generates a QR code PNG data URL for any text
+// Used by host.html and join.html instead of a client-side JS library
+app.get('/api/qr', async (req, res) => {
+  const text = (req.query.text || '').trim();
+  if (!text) return res.status(400).json({ error: 'Missing text param' });
+  try {
+    const QRCode = require('qrcode');
+    const dataUrl = await QRCode.toDataURL(text, {
+      width: parseInt(req.query.width || '260', 10),
+      margin: 1,
+      color: { dark: req.query.dark || '#041e42', light: '#ffffff' },
+    });
+    // Return as PNG image directly
+    const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(Buffer.from(base64, 'base64'));
+  } catch (e) {
+    res.status(500).json({ error: 'QR generation failed' });
+  }
+});
 
 // ---- Socket.io ----
 

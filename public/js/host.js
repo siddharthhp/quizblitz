@@ -155,11 +155,8 @@
     if (anchor) { anchor.href = joinUrl; anchor.textContent = joinUrl; }
 
     const qrContainer = $('qrCanvas');
-    if (qrContainer && typeof QRCode !== 'undefined') {
-      qrContainer.innerHTML = '';
-      QRCode.toCanvas(joinUrl, { width: 140, margin: 1, color: { dark: '#041e42', light: '#ffffff' } }, (err, canvas) => {
-        if (!err) qrContainer.appendChild(canvas);
-      });
+    if (qrContainer) {
+      qrContainer.innerHTML = `<img src="/api/qr?text=${encodeURIComponent(joinUrl)}&width=140" width="140" height="140" style="border-radius:8px;display:block;" alt="QR code" />`;
     }
   }
 
@@ -196,11 +193,8 @@
     if (resumeAnchor) { resumeAnchor.href = resumeUrl; resumeAnchor.textContent = resumeUrl; }
 
     const qrContainer = $('teaserQrCanvas');
-    if (qrContainer && typeof QRCode !== 'undefined') {
-      qrContainer.innerHTML = '';
-      QRCode.toCanvas(teaserUrl, { width: 140, margin: 1, color: { dark: '#041e42', light: '#ffffff' } }, (err, canvas) => {
-        if (!err) qrContainer.appendChild(canvas);
-      });
+    if (qrContainer) {
+      qrContainer.innerHTML = `<img src="/api/qr?text=${encodeURIComponent(teaserUrl)}&width=140" width="140" height="140" style="border-radius:8px;display:block;" alt="QR code" />`;
     }
   }
 
