@@ -402,7 +402,7 @@ io.on('connection', (socket) => {
     }
 
     if (room.state !== 'lobby') return ack?.({ ok: false, error: 'Already started' });
-    if (room.players.size === 0) return ack?.({ ok: false, error: 'No players have joined' });
+    if (room.players.size === 0) return ack?.({ ok: false, error: 'Nobody has joined yet — wait for players to register then try again.' });
     if (room.cleanupTimer) { clearTimeout(room.cleanupTimer); room.cleanupTimer = null; }
     room.currentIndex = 0;
     startQuestion(room);

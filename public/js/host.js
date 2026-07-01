@@ -236,13 +236,24 @@
     socket.emit('host:start', null, (ack) => {
       if (!ack?.ok) { alert(ack?.error || 'Could not start'); return; }
       if (ack.teaser) {
-        // Room flipped to lobby — now waiting for players to join
+        // Room flipped to lobby — players are now being redirected to join form.
+        // Enable Start Game immediately so host can fire questions as soon as
+        // enough players have registered.
         setDisplayLinks(roomCode);
         const joinUrl = `${location.origin}/?code=${roomCode}`;
         $('joinLinkAnchor').href        = joinUrl;
         $('joinLinkAnchor').textContent = joinUrl;
         $('questionTotal').textContent  = '?';
-        setStatus('Lobby (game opened)');
+        setStatus('Open — players joining');
+        // Enable start button — host decides when enough players are in
+        $('startBtn').disabled = false;
+        // Show a helper message in the lobby
+        const hint = document.createElement('p');
+        hint.id = 'teaserHint';
+        hint.style.cssText = 'font-size:14px;color:#546e7a;margin-top:8px;';
+        hint.textContent = '✅ Quiz is open! Players are joining now. Press Start Game when ready.';
+        const startBtn = $('startBtn');
+        startBtn.parentNode.insertBefore(hint, startBtn.nextSibling);
         show('step-lobby');
       }
     });
