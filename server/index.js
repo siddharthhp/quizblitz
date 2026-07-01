@@ -323,6 +323,16 @@ app.get('/api/room/:code', (req, res) => {
 
 app.get('/health', (_req, res) => res.json({ ok: true, rooms: rooms.size }));
 
+// Temporary: verify token for a room (used for debugging resume issues)
+app.get('/api/room/:code/verify', (req, res) => {
+  const code  = (req.params.code || '').toUpperCase().trim();
+  const token = (req.query.token || '').trim();
+  const room  = rooms.get(code);
+  if (!room) return res.json({ ok: false, reason: 'not_found' });
+  if (room.hostToken !== token) return res.json({ ok: false, reason: 'token_mismatch', expected_len: room.hostToken.length, got_len: token.length });
+  res.json({ ok: true, state: room.state, total: room.questions?.length });
+});
+
 // QR code endpoint — generates a QR code PNG data URL for any text
 // Used by host.html and join.html instead of a client-side JS library
 app.get('/api/qr', async (req, res) => {
