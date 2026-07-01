@@ -2,119 +2,100 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BrainBlitz — Rules &amp; How to Play</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>BrainBlitz — Rules</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <style>
       body { background: #f0f4f8; }
-      main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
-      .rules-header {
-        text-align: center;
-        margin-bottom: 32px;
+      main { max-width: 680px; margin: 0 auto; padding: 28px 18px 64px; }
+
+      .rules-header { text-align: center; margin-bottom: 28px; }
+      .rules-header .logo-row {
+        display: inline-flex; align-items: center; gap: 10px;
+        font-size: 26px; font-weight: 900; color: #041e42;
+        letter-spacing: -0.02em; margin-bottom: 6px;
       }
-      .rules-header .logo {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 28px;
-        font-weight: 900;
-        color: #041e42;
-        letter-spacing: -0.02em;
-        margin-bottom: 8px;
-      }
-      .rules-header p {
-        color: #546e7a;
-        font-size: 16px;
-        margin: 0;
-      }
+      .rules-header p { color: #546e7a; font-size: 15px; margin: 0; }
+
       .section {
         background: #fff;
         border: 1px solid #d0dde8;
-        border-radius: 16px;
-        padding: 24px 28px;
-        box-shadow: 0 4px 20px rgba(4,30,66,0.08);
-        margin-bottom: 20px;
+        border-radius: 14px;
+        padding: 20px 24px;
+        box-shadow: 0 3px 14px rgba(4,30,66,0.07);
+        margin-bottom: 16px;
       }
       .section h2 {
-        margin: 0 0 16px;
-        font-size: 18px;
-        font-weight: 800;
-        color: #041e42;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        margin: 0 0 12px;
+        font-size: 17px; font-weight: 800; color: #041e42;
+        display: flex; align-items: center; gap: 8px;
       }
       .section ul, .section ol {
-        margin: 0;
-        padding-left: 20px;
-        line-height: 1.9;
-        color: #253342;
+        margin: 0; padding-left: 18px;
+        line-height: 1.85; color: #253342; font-size: 15px;
       }
-      .section li { margin-bottom: 4px; }
-      .pill {
-        display: inline-block;
-        padding: 3px 12px;
-        border-radius: 999px;
-        font-size: 13px;
-        font-weight: 700;
-        vertical-align: middle;
+      .section li { margin-bottom: 3px; }
+
+      /* Real-name callout — most important rule */
+      .name-callout {
+        background: linear-gradient(135deg, rgba(255,194,32,0.15), rgba(255,194,32,0.05));
+        border: 2px solid #ffc220;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        display: flex; gap: 14px; align-items: flex-start;
       }
-      .pill-blue  { background: rgba(0,113,220,0.12); color: #0071dc; }
-      .pill-gold  { background: rgba(255,194,32,0.2);  color: #7a4a00; }
-      .pill-green { background: rgba(46,125,50,0.12);  color: #2e7d32; }
-      .pill-red   { background: rgba(198,40,40,0.12);  color: #c62828; }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 15px;
-        margin-top: 8px;
-      }
+      .name-callout .icon { font-size: 32px; flex-shrink: 0; line-height: 1; }
+      .name-callout h3 { margin: 0 0 4px; font-size: 16px; font-weight: 800; color: #041e42; }
+      .name-callout p  { margin: 0; font-size: 14px; color: #253342; line-height: 1.6; }
+
+      table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 6px; }
       th {
-        text-align: left;
-        padding: 8px 12px;
-        background: #f0f4f8;
-        color: #546e7a;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        border-bottom: 1px solid #d0dde8;
+        text-align: left; padding: 7px 10px;
+        background: #f0f4f8; color: #546e7a;
+        font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+        text-transform: uppercase; border-bottom: 1px solid #d0dde8;
       }
-      td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #eef2f7;
-        color: #253342;
-      }
+      td { padding: 9px 10px; border-bottom: 1px solid #eef2f7; color: #253342; }
       tr:last-child td { border-bottom: none; }
-      .example-box {
-        background: #f8fafc;
-        border: 1px dashed #b0c4d8;
-        border-radius: 10px;
-        padding: 14px 16px;
-        margin-top: 12px;
-        font-size: 14px;
-        color: #546e7a;
-        line-height: 1.7;
+
+      .pill {
+        display: inline-block; padding: 2px 10px;
+        border-radius: 999px; font-size: 12px; font-weight: 700;
       }
-      .example-box strong { color: #041e42; }
+      .pill-green  { background: rgba(46,125,50,0.12);  color: #2e7d32; }
+      .pill-orange { background: rgba(230,81,0,0.1);    color: #e65100; }
+      .pill-red    { background: rgba(198,40,40,0.12);  color: #c62828; }
+
+      .tip {
+        background: rgba(0,113,220,0.06);
+        border: 1px solid rgba(0,113,220,0.18);
+        border-radius: 9px; padding: 10px 14px;
+        margin-top: 12px; font-size: 13px; color: #253342; line-height: 1.65;
+      }
+
       .back-link {
-        display: inline-block;
-        margin-bottom: 24px;
-        color: #0071dc;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 600;
+        display: inline-block; margin-bottom: 20px;
+        color: #0071dc; text-decoration: none;
+        font-size: 14px; font-weight: 600;
       }
       .back-link:hover { text-decoration: underline; }
+
+      footer { text-align: center; color: #90a4ae; font-size: 12px; margin-top: 28px; }
+
+      @media (max-width: 480px) {
+        .section { padding: 16px 16px; }
+        .name-callout { padding: 14px 14px; }
+      }
     </style>
   </head>
   <body>
     <main>
-      <a href="/" class="back-link">← Back to BrainBlitz</a>
+      <a href="/" class="back-link">← Back</a>
 
       <div class="rules-header">
-        <div class="logo">
-          <svg width="32" height="28" viewBox="0 0 52 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <div class="logo-row">
+          <svg width="28" height="25" viewBox="0 0 52 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M4 6 H10 L14 28 H40 L44 14 H14" stroke="#041e42" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
             <circle cx="19" cy="34" r="3.5" fill="#041e42"/>
             <circle cx="35" cy="34" r="3.5" fill="#041e42"/>
@@ -122,131 +103,71 @@
           </svg>
           BrainBlitz
         </div>
-        <p>Real-time quiz game — rules &amp; how to play</p>
+        <p>Quick rules — read before you play ⚡</p>
+      </div>
+
+      <!-- ⭐ REAL NAME — most prominent rule -->
+      <div class="name-callout">
+        <div class="icon">🪪</div>
+        <div>
+          <h3>Use your real name</h3>
+          <p>Enter your <strong>actual first + last name</strong> when joining. Winners are announced by name — we need to know who you really are to hand over the prize. Nicknames or joke names will be disqualified.</p>
+        </div>
       </div>
 
       <!-- How to join -->
       <div class="section">
-        <h2>🚀 How to Join a Game</h2>
+        <h2>🚀 How to Join</h2>
         <ol>
-          <li><strong>Scan the QR code</strong> on the big screen — or tap the join link shared by the host.</li>
-          <li>Pick a <strong>display name</strong> (max 24 characters, must be unique in the room).</li>
-          <li>Choose an <strong>emoji avatar</strong> — it appears next to your name on the leaderboard.</li>
-          <li>Tap <strong>Join →</strong> and you're in! Hang tight in the lobby until the host starts.</li>
+          <li><strong>Scan the QR code</strong> on the big screen or tap the shared link.</li>
+          <li>Enter your <strong>real name</strong> and pick an emoji avatar.</li>
+          <li>Tap <strong>Join →</strong> and wait in the lobby — the host starts the quiz.</li>
         </ol>
-        <div class="example-box">
-          💡 <strong>Tip:</strong> Keep the tab open throughout the game. If you get disconnected, the app will try to reconnect automatically.
-        </div>
+        <div class="tip">💡 Keep the tab open throughout the game. If you lose connection, the app reconnects automatically.</div>
+      </div>
+
+      <!-- Answering -->
+      <div class="section">
+        <h2>📲 Answering</h2>
+        <ul>
+          <li>Tap <strong>A / B / C / D</strong> to lock in your answer.</li>
+          <li><strong>You cannot change your answer</strong> once locked.</li>
+          <li>No answer before the timer hits zero = <strong>0 points</strong>.</li>
+          <li>The host reveals the correct answer after everyone answers (or time runs out).</li>
+        </ul>
       </div>
 
       <!-- Scoring -->
       <div class="section">
         <h2>🏆 Scoring</h2>
         <table>
-          <thead>
-            <tr>
-              <th>Event</th>
-              <th>Points</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Event</th><th>Points</th></tr></thead>
           <tbody>
-            <tr>
-              <td>✅ Correct answer</td>
-              <td><strong>+100 pts</strong></td>
-            </tr>
-            <tr>
-              <td>❌ Wrong answer</td>
-              <td><strong>0 pts</strong></td>
-            </tr>
-            <tr>
-              <td>⏱️ No answer (timer runs out)</td>
-              <td><strong>0 pts</strong></td>
-            </tr>
-            <tr>
-              <td>🔥 3-correct streak bonus</td>
-              <td><strong>+200 pts</strong> (one-time at exactly 3)</td>
-            </tr>
-            <tr>
-              <td>🔥🔥 5-correct streak bonus</td>
-              <td><strong>+500 pts</strong> (one-time at exactly 5)</td>
-            </tr>
+            <tr><td>✅ Correct answer</td><td><strong>+100 pts</strong></td></tr>
+            <tr><td>❌ Wrong / no answer</td><td><strong>0 pts</strong></td></tr>
+            <tr><td>🔥 3 correct in a row</td><td><strong>+200 pts bonus</strong></td></tr>
+            <tr><td>🔥🔥 5 correct in a row</td><td><strong>+500 pts bonus</strong></td></tr>
           </tbody>
         </table>
-        <div class="example-box">
-          <strong>Example — 10 questions, all correct with a 5-streak:</strong><br>
-          Questions 1–5: 5 × 100 = 500 pts<br>
-          + 3-streak bonus at Q3: +200 pts<br>
-          + 5-streak bonus at Q5: +500 pts<br>
-          Questions 6–10: 5 × 100 = 500 pts<br>
-          <strong>Total: 1,700 pts</strong>
-        </div>
+        <div class="tip">Speed doesn't affect your score — only accuracy does. Streaks reset if you answer wrong or miss a question.</div>
       </div>
 
-      <!-- Streaks -->
+      <!-- Difficulty -->
       <div class="section">
-        <h2>🔥 Streaks</h2>
-        <ul>
-          <li>A <strong>streak</strong> is a run of consecutive correct answers.</li>
-          <li>Bonus points are awarded at the <strong>3rd</strong> and <strong>5th</strong> correct answer in a row.</li>
-          <li>The streak resets to zero if you answer <strong>wrong</strong> or <strong>don't answer</strong> before the timer runs out.</li>
-          <li>Streaks continue across questions — you don't have to be fast, just correct.</li>
-          <li>When you hit a streak milestone, a <strong>🔥 burst animation</strong> appears on your screen.</li>
-        </ul>
-      </div>
-
-      <!-- Difficulty tiers -->
-      <div class="section">
-        <h2>⭐ Difficulty Tiers</h2>
-        <p style="color:#546e7a;font-size:14px;margin:0 0 12px;">Difficulty controls how much <strong>time</strong> you have to answer — not the points. Every correct answer is worth 100 pts.</p>
+        <h2>⭐ Difficulty = Time Limit</h2>
+        <p style="font-size:14px;color:#546e7a;margin:0 0 8px;">Every correct answer is worth 100 pts regardless of difficulty. Harder questions just give you less time.</p>
         <table>
-          <thead>
-            <tr>
-              <th>Tier</th>
-              <th>Time to answer</th>
-              <th>Points</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Tier</th><th>Time</th><th>Points</th></tr></thead>
           <tbody>
-            <tr>
-              <td><span class="pill pill-green">⭐ Very Easy</span></td>
-              <td>8 seconds</td>
-              <td>100 pts</td>
-            </tr>
-            <tr>
-              <td><span class="pill pill-green">⭐⭐ Easy</span></td>
-              <td>12 seconds</td>
-              <td>100 pts</td>
-            </tr>
-            <tr>
-              <td><span class="pill" style="background:rgba(230,81,0,0.12);color:#e65100;">⭐⭐⭐ Medium</span></td>
-              <td>15 seconds</td>
-              <td>100 pts</td>
-            </tr>
-            <tr>
-              <td><span class="pill pill-red">⭐⭐⭐⭐ Hard</span></td>
-              <td>18 seconds</td>
-              <td>100 pts</td>
-            </tr>
+            <tr><td><span class="pill pill-green">⭐ Very Easy</span></td><td>8 s</td><td>100</td></tr>
+            <tr><td><span class="pill pill-green">⭐⭐ Easy</span></td><td>12 s</td><td>100</td></tr>
+            <tr><td><span class="pill pill-orange">⭐⭐⭐ Medium</span></td><td>15 s</td><td>100</td></tr>
+            <tr><td><span class="pill pill-red">⭐⭐⭐⭐ Hard</span></td><td>18 s</td><td>100</td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Answering -->
-      <div class="section">
-        <h2>📲 Answering Questions</h2>
-        <ul>
-          <li>Tap one of the <strong>A / B / C / D</strong> options to lock in your answer.</li>
-          <li>Once locked, <strong>you cannot change your answer</strong>.</li>
-          <li>A ⏳ badge confirms your answer was received.</li>
-          <li>If the timer reaches zero before you answer, you score 0 for that question.</li>
-          <li>After all players answer (or time runs out), the host reveals the correct answer.</li>
-        </ul>
-      </div>
-
-      <!-- Footer -->
-      <p style="text-align:center;color:#90a4ae;font-size:13px;margin-top:32px;">
-        BrainBlitz · Built with ❤️ · Last updated June 2026
-      </p>
+      <footer>BrainBlitz · Walmart Retail Services · July 2026</footer>
     </main>
   </body>
 </html>
