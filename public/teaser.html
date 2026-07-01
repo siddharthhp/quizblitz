@@ -399,7 +399,7 @@
       const params = new URLSearchParams(location.search);
       const code   = (params.get('code') || '').toUpperCase().trim();
       if (!code) {
-        document.querySelector('.headline').innerHTML = 'The quiz is coming 👀<br><span class="gold" style="font-size:0.6em;">Ask the host to share your link!</span>';
+        document.querySelector('.headline').innerHTML = 'The quiz is coming 👀<br><span class="gold" style="font-size:0.6em;">Scan the QR code on the big screen to join!</span>';
         return;
       }
 
