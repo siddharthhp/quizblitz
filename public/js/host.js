@@ -44,9 +44,7 @@
           saveHostSession(ack.code, urlToken);
           roomCode = ack.code;
           if (ack.state === 'teaser') {
-            setTeaserLinks(ack.code, urlToken);
-            setStatus('Scheduled');
-            show('step-teaser');
+            showAfterResume(ack.code, urlToken, ack.total);
           } else {
             $('questionTotal').textContent = ack.total;
             setDisplayLinks(ack.code);
@@ -110,9 +108,7 @@
       saveHostSession(ack.code, token);
       roomCode = ack.code;
       if (ack.state === 'teaser') {
-        setTeaserLinks(ack.code, token);
-        setStatus('Scheduled');
-        show('step-teaser');
+        showAfterResume(ack.code, token, ack.total);
       } else {
         $('questionTotal').textContent = ack.total;
         setDisplayLinks(ack.code);
@@ -133,9 +129,7 @@
       }
       roomCode = ack.code;
       if (ack.state === 'teaser') {
-        setTeaserLinks(ack.code, token);
-        setStatus('Scheduled');
-        show('step-teaser');
+        showAfterResume(ack.code, token, ack.total);
       } else {
         $('questionTotal').textContent = ack.total;
         setDisplayLinks(ack.code);
@@ -169,6 +163,26 @@
     }
   }
 
+  function showAfterResume(code, token, total) {
+    setTeaserLinks(code, token);
+    setStatus('Scheduled');
+    // Update question status pill
+    const statusPill = $('questionsStatus');
+    if (statusPill) {
+      if (total > 0) {
+        statusPill.textContent = `✅ ${total} questions`;
+        statusPill.style.background = 'rgba(46,125,50,0.12)';
+        statusPill.style.color = '#2e7d32';
+      } else {
+        statusPill.textContent = 'No questions yet';
+        statusPill.style.background = 'rgba(198,40,40,0.15)';
+        statusPill.style.color = '#c62828';
+      }
+    }
+    $('questionTotal').textContent = total || '?';
+    show('step-questions');
+  }
+
   function setTeaserLinks(code, token) {
     roomCode = code;
     const teaserUrl = `${location.origin}/teaser.html?code=${code}`;
@@ -189,6 +203,27 @@
       });
     }
   }
+
+  // ---- Create room (no questions needed) ----
+  $('createRoomBtn').addEventListener('click', () => {
+    const btn = $('createRoomBtn');
+    const msg = $('uploadMsg');
+    btn.disabled    = true;
+    btn.textContent = '⏳ Creating room…';
+    socket.emit('host:schedule', {}, (ack) => {
+      btn.disabled    = false;
+      btn.textContent = '🚀 Create Quiz Room';
+      if (!ack?.ok) {
+        msg.textContent = `❌ ${ack?.error || 'Could not create room'}`;
+        msg.className   = 'msg error';
+        return;
+      }
+      saveHostSession(ack.code, ack.hostToken);
+      setTeaserLinks(ack.code, ack.hostToken);
+      setStatus('Scheduled');
+      show('step-questions'); // go to question upload screen
+    });
+  });
 
   // ---- File picker UX ----
   const fileInput    = $('file');
@@ -227,18 +262,16 @@
     parseBtn.disabled = false;
   }
 
-  // ---- Upload & create room ----
-  let parsedQuestions = null;
-
+  // ---- Upload questions and attach to existing room ----
   $('uploadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const file = $('file').files[0];
     if (!file) return;
 
     const btn = parseBtn;
-    const msg = $('uploadMsg');
+    const msg = $('uploadMsg2');
     btn.disabled    = true;
-    btn.textContent = '⏳ Parsing…';
+    btn.textContent = '⏳ Uploading…';
     msg.textContent = `Uploading "${file.name}"…`;
     msg.className   = 'msg';
 
@@ -249,34 +282,40 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
 
-      parsedQuestions = data.questions;
-      msg.textContent = `✅ Parsed ${data.questions.length} questions! Creating room…`;
+      msg.textContent = `✅ Parsed ${data.questions.length} questions — attaching to room…`;
       msg.className   = 'msg ok';
-      btn.textContent = '🔄 Creating room…';
 
-      socket.emit('host:create', { questions: data.questions }, (ack) => {
+      // Attach questions to the existing teaser room (no new code)
+      socket.emit('host:setQuestions', { questions: data.questions }, (ack) => {
         btn.disabled    = false;
-        btn.textContent = 'Parse';
+        btn.textContent = 'Upload questions';
         if (!ack?.ok) {
-          msg.textContent = `❌ ${ack?.error || 'Could not create room'}`;
+          msg.textContent = `❌ ${ack?.error || 'Could not attach questions'}`;
           msg.className   = 'msg error';
-          parseBtn.disabled = false;
           return;
         }
-        saveHostSession(ack.code, ack.hostToken);
+        msg.textContent = `✅ ${ack.total} questions loaded! Ready to go.`;
+        msg.className   = 'msg ok';
+        const statusPill = $('questionsStatus');
+        if (statusPill) {
+          statusPill.textContent = `✅ ${ack.total} questions`;
+          statusPill.style.background = 'rgba(46,125,50,0.12)';
+          statusPill.style.color = '#2e7d32';
+        }
         $('questionTotal').textContent = ack.total;
-        setDisplayLinks(ack.code);
-        setStatus('Lobby');
-        show('step-lobby');
       });
     } catch (err) {
       btn.disabled    = false;
-      btn.textContent = 'Parse';
-      parseBtn.disabled = false;
+      btn.textContent = 'Upload questions';
       msg.textContent = `❌ ${err.message || 'Upload failed'}`;
       msg.className   = 'msg error';
     }
   });
+
+  // "View teaser screen" button on questions step
+  if ($('goToTeaserBtn')) {
+    $('goToTeaserBtn').addEventListener('click', () => show('step-teaser'));
+  }
 
   // ---- Lobby ----
   const seenPlayers = new Set();
@@ -297,21 +336,6 @@
   $('startBtn').addEventListener('click', () => {
     socket.emit('host:start', null, (ack) => {
       if (!ack?.ok) alert(ack?.error || 'Could not start');
-    });
-  });
-
-  // Schedule for later — flips room to teaser state
-  $('scheduleBtn').addEventListener('click', () => {
-    if (!roomCode || !parsedQuestions) return;
-    const { token } = getSavedSession();
-    // Use host:schedule to create a new teaser room with the already-parsed questions
-    // (We already have a lobby room; schedule creates a replacement teaser room)
-    socket.emit('host:schedule', { questions: parsedQuestions }, (ack) => {
-      if (!ack?.ok) { alert(ack?.error || 'Could not schedule'); return; }
-      saveHostSession(ack.code, ack.hostToken);
-      setTeaserLinks(ack.code, ack.hostToken);
-      setStatus('Scheduled');
-      show('step-teaser');
     });
   });
 

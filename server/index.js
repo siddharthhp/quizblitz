@@ -353,24 +353,42 @@ io.on('connection', (socket) => {
     ack?.({ ok: true, code, hostToken, total: questions.length });
   });
 
-  // Schedule a room — teaser state, long TTL, link shareable immediately
+  // Schedule a room — teaser state, long TTL, link shareable immediately.
+  // Questions are optional — host can upload them later via host:setQuestions.
   socket.on('host:schedule', ({ questions, teaser } = {}, ack) => {
-    const err = validateQuestions(questions);
-    if (err) return ack?.({ ok: false, error: err });
+    // Validate only if questions were provided
+    if (questions && questions.length > 0) {
+      const err = validateQuestions(questions);
+      if (err) return ack?.({ ok: false, error: err });
+    }
 
     const code      = makeRoomCode();
     const hostToken = generateHostToken();
-    const room      = makeRoomObject(code, questions, socket.id, hostToken);
+    const room      = makeRoomObject(code, questions || [], socket.id, hostToken);
     room.state      = 'teaser';
     room.expiresAt  = Date.now() + TEASER_ROOM_TTL_MS;
-    room.teaser     = teaser || null; // { goLiveAt: ISO string, title, hint1, hint2 }
+    room.teaser     = teaser || null;
     room.cleanupTimer = scheduleRoomCleanup(code, TEASER_ROOM_TTL_MS);
     rooms.set(code, room);
     socket.join(code);
     socket.data.role     = 'host';
     socket.data.roomCode = code;
     saveTeaserRooms();
-    ack?.({ ok: true, code, hostToken, total: questions.length });
+    ack?.({ ok: true, code, hostToken, total: (questions || []).length });
+  });
+
+  // Attach / replace questions on an existing teaser room (called after upload)
+  socket.on('host:setQuestions', ({ questions } = {}, ack) => {
+    const room = rooms.get(socket.data.roomCode);
+    if (!room) return ack?.({ ok: false, error: 'Room not found' });
+    if (room.hostSocketId !== socket.id) return ack?.({ ok: false, error: 'Not host' });
+    if (room.state !== 'teaser' && room.state !== 'lobby')
+      return ack?.({ ok: false, error: 'Cannot update questions once game has started' });
+    const err = validateQuestions(questions);
+    if (err) return ack?.({ ok: false, error: err });
+    room.questions = questions;
+    saveTeaserRooms();
+    ack?.({ ok: true, total: questions.length });
   });
 
   // Host reclaims a teaser room on a new session (Friday) using their token
@@ -393,6 +411,9 @@ io.on('connection', (socket) => {
     if (room.hostSocketId !== socket.id) return ack?.({ ok: false, error: 'Not host' });
 
     if (room.state === 'teaser') {
+      // Guard: questions must be loaded before opening to players
+      if (!room.questions || room.questions.length === 0)
+        return ack?.({ ok: false, error: 'Upload your questions before opening the quiz.' });
       // Flip teaser → lobby, notify all waiting teaser watchers
       room.state = 'lobby';
       io.to(`teaser:${room.code}`).emit('teaser:golive', { code: room.code });

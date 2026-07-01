@@ -39,11 +39,42 @@
     </header>
 
     <main id="app">
-      <!-- Step 1: upload -->
+      <!-- Step 1: landing — create or resume -->
       <section id="step-upload" class="card">
-        <h1>Upload your quiz</h1>
-        <p>Drop a <strong>.docx</strong> with your questions. Two formats supported:</p>
-        <details>
+        <h1>BrainBlitz Host</h1>
+        <p style="color:var(--muted);margin-bottom:24px;">Create a quiz room and share the teaser link — upload questions anytime before you start.</p>
+
+        <!-- Primary action -->
+        <button id="createRoomBtn" class="primary" style="width:100%;font-size:17px;padding:16px;margin-bottom:16px;">🚀 Create Quiz Room</button>
+        <div id="uploadMsg" class="msg" style="margin-bottom:12px;min-height:1.2em;"></div>
+
+        <hr style="border:none;border-top:1px solid var(--card-border);margin-bottom:16px;" />
+
+        <!-- Resume box (shown when localStorage has a saved session) -->
+        <div id="resumeBox" class="hidden" style="padding:14px 18px;border-radius:12px;background:rgba(255,194,32,0.1);border:1.5px solid rgba(255,194,32,0.5);margin-bottom:12px;">
+          <p style="font-weight:700;margin-bottom:8px;font-size:15px;">🗓️ You have a scheduled quiz</p>
+          <p class="dim" style="margin-bottom:10px;font-size:14px;">Room <strong id="resumeCode"></strong> is waiting.</p>
+          <button id="resumeBtn" class="primary" style="font-size:14px;padding:12px 18px;min-height:44px;">Resume →</button>
+        </div>
+
+        <!-- Manual resume via host link -->
+        <button id="manualResumeToggle" class="ghost" style="font-size:13px;padding:8px 14px;width:100%;">🔑 Resume with host link</button>
+        <div id="manualResumeBox" class="hidden" style="margin-top:10px;padding:14px 16px;border-radius:10px;background:#f8fafc;border:1px solid #d0dde8;">
+          <p style="font-size:13px;color:#546e7a;margin-bottom:8px;">Paste your host resume URL:</p>
+          <input type="text" id="manualResumeUrl" placeholder="https://…/host.html?code=XXX&token=YYY" style="font-size:13px;padding:10px 12px;width:100%;margin-bottom:8px;" />
+          <button id="manualResumeBtn" class="primary" style="font-size:13px;padding:10px 16px;min-height:44px;width:100%;">Resume →</button>
+          <div id="manualResumeMsg" class="msg" style="margin-top:6px;font-size:13px;"></div>
+        </div>
+      </section>
+
+      <!-- Step 1b: upload questions (shown after room created, before teaser screen) -->
+      <section id="step-questions" class="card hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <h1 style="margin:0;">Upload questions</h1>
+          <span id="questionsStatus" class="pill" style="background:rgba(198,40,40,0.15);color:#c62828;">No questions yet</span>
+        </div>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Your teaser link is ready to share. Upload questions now or later — before you start the quiz on Friday.</p>
+        <details style="margin-bottom:12px;">
           <summary>Format examples</summary>
           <pre>Prose (recommended):
 Q: What is the capital of France? (15)
@@ -53,15 +84,10 @@ C) Berlin
 D) Rome
 Answer: B
 
-Legacy tick mark also works:
-B) Paris ✓
-
 Table: header row must be
 | Question | A | B | C | D | Answer |
-where Answer column holds the correct letter (A/B/C/D).
 
-Timer: add (N) in seconds at end of question, e.g. "Question? (30)"
-Defaults to 20s if omitted. Min 5s, max 120s.</pre>
+Timer: add (N) in seconds, e.g. "Question? (30)". Default 20s.</pre>
         </details>
         <form id="uploadForm">
           <label id="fileLabel" class="file-drop" for="file">
@@ -69,24 +95,11 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
             <div id="fileSpinner" class="spinner hidden"></div>
           </label>
           <input type="file" id="file" accept=".docx" required style="display:none" />
-          <button type="submit" id="parseBtn" class="primary" disabled>Parse</button>
+          <button type="submit" id="parseBtn" class="primary" disabled>Upload questions</button>
         </form>
-        <div id="uploadMsg" class="msg" style="margin-top:14px;font-size:16px;min-height:2em;"></div>
-        <!-- Resume a previously scheduled quiz -->
-        <div id="resumeBox" class="hidden" style="margin-top:20px;padding:16px 20px;border-radius:12px;background:rgba(255,194,32,0.1);border:1.5px solid rgba(255,194,32,0.5);">
-          <p style="font-weight:700;margin-bottom:10px;font-size:15px;">🗓️ You have a scheduled quiz</p>
-          <p class="dim" style="margin-bottom:12px;font-size:14px;">Room <strong id="resumeCode"></strong> is waiting. Reclaim it to start when you're ready.</p>
-          <button id="resumeBtn" class="primary" style="font-size:14px;padding:12px 18px;min-height:44px;">Resume scheduled quiz →</button>
-        </div>
-        <!-- Manual resume fallback -->
-        <div style="margin-top:12px;">
-          <button id="manualResumeToggle" class="ghost" style="font-size:13px;padding:8px 14px;">🔑 Resume with host link</button>
-          <div id="manualResumeBox" class="hidden" style="margin-top:10px;padding:14px 16px;border-radius:10px;background:#f8fafc;border:1px solid #d0dde8;">
-            <p style="font-size:13px;color:#546e7a;margin-bottom:8px;">Paste your host resume URL (from the teaser screen) or enter code + token manually:</p>
-            <input type="text" id="manualResumeUrl" placeholder="https://…/host.html?code=XXX&token=YYY  or just paste code:token" style="font-size:13px;padding:10px 12px;width:100%;margin-bottom:8px;" />
-            <button id="manualResumeBtn" class="primary" style="font-size:13px;padding:10px 16px;min-height:44px;">Resume →</button>
-            <div id="manualResumeMsg" class="msg" style="margin-top:6px;font-size:13px;"></div>
-          </div>
+        <div id="uploadMsg2" class="msg" style="margin-top:12px;font-size:15px;min-height:2em;"></div>
+        <div style="margin-top:16px;">
+          <button id="goToTeaserBtn" class="ghost" style="width:100%;">View teaser screen →</button>
         </div>
       </section>
 
@@ -115,7 +128,6 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
             <h2>Quiz</h2>
             <p><strong id="questionTotal">0</strong> questions loaded.</p>
             <button id="startBtn" class="primary" disabled>Start Game</button>
-            <button id="scheduleBtn" class="ghost" style="margin-top:10px;width:100%;">📅 Schedule for later</button>
           </div>
         </div>
       </section>
