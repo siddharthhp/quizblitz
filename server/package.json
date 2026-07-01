@@ -11,15 +11,15 @@
     "node": ">=18"
   },
   "dependencies": {
+    "canvas-confetti": "^1.9.3",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "mammoth": "^1.7.2",
     "multer": "^1.4.5-lts.1",
-    "canvas-confetti": "^1.9.3",
     "qrcode": "^1.5.4",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
-    "docx": "^9.6.1"
+    "docx": "^9.7.1"
   }
 }
