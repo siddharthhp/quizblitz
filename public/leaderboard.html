@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>BrainBlitz — Live Leaderboard</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <style>
@@ -162,6 +162,19 @@
         font-weight: 700;
       }
 
+      /* Mobile scaling */
+      @media (max-width: 599px) {
+        #step-live h1 { font-size: 26px; }
+        .leaderboard li { font-size: 15px; padding: 10px 12px; margin-bottom: 6px; }
+        .leaderboard li:nth-child(1) { font-size: 18px; }
+        .leaderboard li:nth-child(2) { font-size: 17px; }
+        .leaderboard li:nth-child(3) { font-size: 16px; }
+        .vote-letter { width: 26px; height: 26px; font-size: 12px; }
+        .vote-bar-track { height: 22px; }
+        .vote-pct { font-size: 13px; min-width: 34px; }
+        .vote-count { font-size: 11px; min-width: 28px; }
+        #roomInput { font-size: 16px; } /* prevent iOS zoom */
+      }
       /* Big-screen projector scaling */
       @media (min-width: 1200px) {
         main { max-width: 100%; padding: 32px 80px 60px; }
@@ -224,7 +237,7 @@
         </div>
         <p class="subtitle" id="lbSubtitle"></p>
         <ol id="lbList" class="leaderboard"></ol>
-        <div id="liveStatus"><span class="pulse">●</span> LIVE · Walmart Retail Services All Hands 2026</div>
+        <div id="liveStatus"><span class="pulse">●</span> LIVE · Walmart Retail Services</div>
       </section>
     </main>
 

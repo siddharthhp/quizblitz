@@ -372,6 +372,26 @@ pre { background: #f0f4f8; border: 1px solid var(--card-border); padding: 14px; 
   .player main { min-height: calc(100dvh - 52px); }
 }
 
+/* Landscape safe areas (notched phones in landscape) */
+@media (orientation: landscape) {
+  .bar {
+    padding-left: max(24px, env(safe-area-inset-left));
+    padding-right: max(24px, env(safe-area-inset-right));
+  }
+  .player main, main {
+    padding-left: max(18px, env(safe-area-inset-left));
+    padding-right: max(18px, env(safe-area-inset-right));
+  }
+}
+
+/* Scale up options grid on very large screens */
+@media (min-width: 1200px) {
+  .options { gap: 16px; }
+  .options li { font-size: 20px; padding: 24px 22px; min-height: 72px; }
+  .options li .letter { width: 40px; height: 40px; font-size: 17px; }
+  .card { padding: 36px; }
+}
+
 /* Shake + red flash on wrong answer */
 @keyframes shake-wrong {
   0%   { transform: translateX(0); background: var(--card); }

@@ -2,9 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>BrainBlitz — Host</title>
     <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      /* Safe area for notched devices */
+      .bar {
+        padding-top: max(14px, env(safe-area-inset-top));
+        padding-left: max(24px, env(safe-area-inset-left));
+        padding-right: max(24px, env(safe-area-inset-right));
+      }
+      main { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
+
+      /* Mobile host tweaks */
+      @media (max-width: 599px) {
+        .lobby-grid { grid-template-columns: 1fr; }
+        #joinInviteBox, #teaserInviteBox { flex-direction: column; gap: 12px; }
+        #qrCanvas, #teaserQrCanvas { align-self: center; }
+        .qmeta { font-size: 13px; }
+        #step-question h1, #step-reveal h1 { font-size: 20px; }
+      }
+    </style>
   </head>
   <body class="host">
     <header class="bar">
@@ -58,7 +76,7 @@ Defaults to 20s if omitted. Min 5s, max 120s.</pre>
         <div id="resumeBox" class="hidden" style="margin-top:20px;padding:16px 20px;border-radius:12px;background:rgba(255,194,32,0.1);border:1.5px solid rgba(255,194,32,0.5);">
           <p style="font-weight:700;margin-bottom:10px;font-size:15px;">🗓️ You have a scheduled quiz</p>
           <p class="dim" style="margin-bottom:12px;font-size:14px;">Room <strong id="resumeCode"></strong> is waiting. Reclaim it to start when you're ready.</p>
-          <button id="resumeBtn" class="primary" style="font-size:14px;padding:10px 18px;">Resume scheduled quiz →</button>
+          <button id="resumeBtn" class="primary" style="font-size:14px;padding:12px 18px;min-height:44px;">Resume scheduled quiz →</button>
         </div>
       </section>
 

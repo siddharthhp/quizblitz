@@ -2,12 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>BrainBlitz — Join</title>
     <link rel="stylesheet" href="/css/styles.css" />
     <style>
-      body { overflow: hidden; }
-      main { max-width: 680px; text-align: center; margin-top: 40px; }
+      body { overflow-y: auto; }
+      main { max-width: 680px; text-align: center; margin-top: 40px; width: 100%; }
       #step-join { text-align: center; }
       #step-join h1 { font-size: 36px; margin-bottom: 6px; }
 
@@ -37,6 +37,15 @@
       }
       #playerCount span { color: var(--accent); font-weight: 700; }
 
+      /* Mobile */
+      @media (max-width: 599px) {
+        main { margin-top: 16px; padding: 12px 12px 40px; }
+        #step-join h1 { font-size: 26px; }
+        .join-url { font-size: 14px; word-break: break-all; }
+        .scan-label { font-size: 15px; }
+        #playerCount { font-size: 15px; }
+        #qrContainer { padding: 10px; }
+      }
       /* Big-screen projector scaling */
       @media (min-width: 1200px) {
         main { max-width: 100%; padding: 40px 100px; }
