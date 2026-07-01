@@ -412,7 +412,21 @@ io.on('connection', (socket) => {
     socket.join(code);
     socket.data.role     = 'host';
     socket.data.roomCode = code;
+    // Broadcast the room code to all teaser watchers on the global channel
+    io.to('global:teaser').emit('global:roomReady', { code });
     ack?.({ ok: true, code, hostToken, total: questions.length });
+  });
+
+  // Teaser pages (no code) subscribe to global:teaser to receive room code when host creates
+  socket.on('teaser:watchGlobal', (_payload, ack) => {
+    socket.join('global:teaser');
+    // If any lobby room already exists, send it immediately (host already created)
+    const liveRoom = Array.from(rooms.values()).find(r => r.state === 'lobby');
+    if (liveRoom) {
+      ack?.({ ok: true, code: liveRoom.code });
+    } else {
+      ack?.({ ok: true, code: null }); // waiting for host
+    }
   });
 
   // Schedule a room — teaser state, long TTL, link shareable immediately.
@@ -476,11 +490,12 @@ io.on('connection', (socket) => {
       // Guard: questions must be loaded before opening to players
       if (!room.questions || room.questions.length === 0)
         return ack?.({ ok: false, error: 'Upload your questions before opening the quiz.' });
-      // Flip teaser → lobby, notify all waiting teaser watchers
+      // Flip teaser → lobby, notify all teaser watchers (both code-specific and global)
       room.state = 'lobby';
       io.to(`teaser:${room.code}`).emit('teaser:golive', { code: room.code });
+      io.to('global:teaser').emit('global:roomReady', { code: room.code });
       saveTeaserRooms();
-      ack?.({ ok: true, teaser: true }); // host.js shows "waiting for players to join"
+      ack?.({ ok: true, teaser: true });
       return;
     }
 
