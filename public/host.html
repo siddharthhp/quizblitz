@@ -67,40 +67,46 @@
         </div>
       </section>
 
-      <!-- Step 1b: upload questions (shown after room created, before teaser screen) -->
+      <!-- Step 1b: room created — share link + lock it in Railway -->
       <section id="step-questions" class="card hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-          <h1 style="margin:0;">Upload questions</h1>
-          <span id="questionsStatus" class="pill" style="background:rgba(198,40,40,0.15);color:#c62828;">No questions yet</span>
+        <h1 style="margin-bottom:4px;">🎉 Room created!</h1>
+        <p style="color:var(--muted);font-size:14px;margin-bottom:20px;">Your teaser link is live. Do steps 1 &amp; 2 below — questions can wait until before Friday.</p>
+
+        <!-- Step 1: Share teaser link -->
+        <div style="background:linear-gradient(135deg,rgba(0,113,220,0.07),rgba(255,194,32,0.07));border:2px solid #0071dc;border-radius:12px;padding:16px 20px;margin-bottom:14px;">
+          <p style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Step 1 — Share this teaser link</p>
+          <a id="teaserShareLink" href="#" target="_blank" style="font-size:14px;font-weight:700;color:var(--accent);word-break:break-all;text-decoration:none;display:block;margin-bottom:8px;"></a>
+          <button id="copyTeaserBtn" class="ghost" style="font-size:13px;padding:8px 14px;">📋 Copy link</button>
+          <span id="copyTeaserMsg" style="font-size:12px;color:#2e7d32;margin-left:8px;"></span>
         </div>
-        <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">Your teaser link is ready to share. Upload questions now or later — before you start the quiz on Friday.</p>
+
+        <!-- Step 2: Lock room into Railway env var -->
+        <div style="background:rgba(255,194,32,0.08);border:1.5px solid rgba(255,194,32,0.5);border-radius:12px;padding:16px 20px;margin-bottom:14px;">
+          <p style="font-size:13px;font-weight:700;color:#7a4a00;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Step 2 — Make the link permanent (survives server restarts)</p>
+          <p style="font-size:13px;color:#546e7a;margin-bottom:10px;">Click below → copy the value → paste it in <strong>Railway → Variables → Add RESERVED_ROOM</strong></p>
+          <button id="snapshotBtn" class="primary" style="font-size:13px;padding:10px 16px;">📋 Copy RESERVED_ROOM value</button>
+          <div id="snapshotMsg" style="margin-top:6px;font-size:12px;color:#2e7d32;"></div>
+        </div>
+
+        <!-- Step 3: Upload questions (optional now, required before Start) -->
         <details style="margin-bottom:12px;">
-          <summary>Format examples</summary>
-          <pre>Prose (recommended):
-Q: What is the capital of France? (15)
-A) London
-B) Paris
-C) Berlin
-D) Rome
-Answer: B
-
-Table: header row must be
-| Question | A | B | C | D | Answer |
-
-Timer: add (N) in seconds, e.g. "Question? (30)". Default 20s.</pre>
+          <summary style="cursor:pointer;font-weight:700;color:var(--fg);font-size:15px;">
+            📂 Upload questions <span id="questionsStatus" style="font-size:12px;font-weight:600;color:#c62828;margin-left:8px;">— not uploaded yet</span>
+          </summary>
+          <div style="margin-top:12px;">
+            <form id="uploadForm">
+              <label id="fileLabel" class="file-drop" for="file">
+                <span id="fileLabelText">📂 Choose a .docx file</span>
+                <div id="fileSpinner" class="spinner hidden"></div>
+              </label>
+              <input type="file" id="file" accept=".docx" required style="display:none" />
+              <button type="submit" id="parseBtn" class="primary" style="margin-top:10px;" disabled>Upload questions</button>
+            </form>
+            <div id="uploadMsg2" class="msg" style="margin-top:10px;font-size:14px;min-height:1.4em;"></div>
+          </div>
         </details>
-        <form id="uploadForm">
-          <label id="fileLabel" class="file-drop" for="file">
-            <span id="fileLabelText">📂 Choose a .docx file</span>
-            <div id="fileSpinner" class="spinner hidden"></div>
-          </label>
-          <input type="file" id="file" accept=".docx" required style="display:none" />
-          <button type="submit" id="parseBtn" class="primary" disabled>Upload questions</button>
-        </form>
-        <div id="uploadMsg2" class="msg" style="margin-top:12px;font-size:15px;min-height:2em;"></div>
-        <div style="margin-top:16px;">
-          <button id="goToTeaserBtn" class="ghost" style="width:100%;">View teaser screen →</button>
-        </div>
+
+        <button id="goToTeaserBtn" class="ghost" style="width:100%;margin-top:4px;">View full teaser screen →</button>
       </section>
 
       <!-- Step 2: lobby -->

@@ -191,17 +191,15 @@
   function showAfterResume(code, token, total) {
     setTeaserLinks(code, token);
     setStatus('Scheduled');
-    // Update question status pill
-    const statusPill = $('questionsStatus');
-    if (statusPill) {
+    // Update questions status text inside the details summary
+    const statusSpan = $('questionsStatus');
+    if (statusSpan) {
       if (total > 0) {
-        statusPill.textContent = `✅ ${total} questions`;
-        statusPill.style.background = 'rgba(46,125,50,0.12)';
-        statusPill.style.color = '#2e7d32';
+        statusSpan.textContent = `✅ ${total} questions loaded`;
+        statusSpan.style.color = '#2e7d32';
       } else {
-        statusPill.textContent = 'No questions yet';
-        statusPill.style.background = 'rgba(198,40,40,0.15)';
-        statusPill.style.color = '#c62828';
+        statusSpan.textContent = '— not uploaded yet';
+        statusSpan.style.color = '#c62828';
       }
     }
     $('questionTotal').textContent = total || '?';
@@ -224,6 +222,10 @@
     if (qrContainer) {
       qrContainer.innerHTML = `<img src="/api/qr?text=${encodeURIComponent(teaserUrl)}&width=140" width="140" height="140" style="border-radius:8px;display:block;" alt="QR code" />`;
     }
+
+    // Also populate the share link on the questions screen
+    const shareLink = $('teaserShareLink');
+    if (shareLink) { shareLink.href = teaserUrl; shareLink.textContent = teaserUrl; }
   }
 
   // ---- Create room (no questions needed) ----
@@ -319,11 +321,10 @@
         saveQuestionsLocally(data.questions); // persist locally for auto-recreate on server restart
         msg.textContent = `✅ ${ack.total} questions loaded! Ready to go.`;
         msg.className   = 'msg ok';
-        const statusPill = $('questionsStatus');
-        if (statusPill) {
-          statusPill.textContent = `✅ ${ack.total} questions`;
-          statusPill.style.background = 'rgba(46,125,50,0.12)';
-          statusPill.style.color = '#2e7d32';
+        const statusSpan = $('questionsStatus');
+        if (statusSpan) {
+          statusSpan.textContent = `✅ ${ack.total} questions loaded`;
+          statusSpan.style.color = '#2e7d32';
         }
         $('questionTotal').textContent = ack.total;
       });
@@ -334,6 +335,19 @@
       msg.className   = 'msg error';
     }
   });
+
+  // Copy teaser link button on questions screen
+  if ($('copyTeaserBtn')) {
+    $('copyTeaserBtn').addEventListener('click', async () => {
+      const link = $('teaserShareLink')?.href;
+      if (!link) return;
+      try {
+        await navigator.clipboard.writeText(link);
+        $('copyTeaserMsg').textContent = '✅ Copied!';
+        setTimeout(() => { $('copyTeaserMsg').textContent = ''; }, 2000);
+      } catch { $('copyTeaserMsg').textContent = link; }
+    });
+  }
 
   // "View teaser screen" button on questions step
   if ($('goToTeaserBtn')) {
