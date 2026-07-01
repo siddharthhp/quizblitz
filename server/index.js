@@ -54,8 +54,9 @@ const ROOM_CODE_LEN      = 6;
 
 // ---- Persistence ----
 // Teaser rooms must survive server restarts (the link is shared days in advance).
-// We persist them to a JSON file and reload on boot.
-const PERSIST_PATH = path.join(__dirname, 'rooms.json');
+// Primary: persist to /tmp/rooms.json (survives Railway restarts, not redeploys)
+// Fallback: RESERVED_ROOM env var (set in Railway dashboard — survives everything)
+const PERSIST_PATH = process.env.ROOMS_PATH || path.join('/tmp', 'bb-rooms.json');
 
 function sanitizeAvatar(a) {
   return AVATAR_ALLOWLIST.includes(a) ? a : DEFAULT_AVATAR;
@@ -98,6 +99,25 @@ function saveTeaserRooms() {
     fs.writeFileSync(PERSIST_PATH, JSON.stringify(toSave, null, 2));
   } catch (e) {
     console.error('Failed to persist rooms:', e.message);
+  }
+}
+
+function loadReservedRoom() {
+  // RESERVED_ROOM env var = base64(JSON) of {code, hostToken, questions, state}
+  // Set this in Railway dashboard to make the room survive all restarts/redeploys.
+  const raw = process.env.RESERVED_ROOM;
+  if (!raw) return;
+  try {
+    const r = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
+    if (!r.code || !r.hostToken) return;
+    const room = makeRoomObject(r.code, r.questions || [], null, r.hostToken);
+    room.state     = r.state || 'teaser';
+    room.expiresAt = Date.now() + TEASER_ROOM_TTL_MS;
+    room.cleanupTimer = scheduleRoomCleanup(r.code, TEASER_ROOM_TTL_MS);
+    rooms.set(r.code, room);
+    console.log(`Loaded reserved room ${r.code} from RESERVED_ROOM env var (state: ${room.state}, questions: ${room.questions.length})`);
+  } catch (e) {
+    console.error('Failed to load RESERVED_ROOM env var:', e.message);
   }
 }
 
@@ -322,6 +342,23 @@ app.get('/api/room/:code', (req, res) => {
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true, rooms: rooms.size }));
+
+// Returns base64 snapshot of a room — paste as RESERVED_ROOM env var in Railway
+// to make this room survive all future deploys/restarts.
+app.get('/api/room/:code/snapshot', (req, res) => {
+  const code  = (req.params.code || '').toUpperCase().trim();
+  const token = (req.query.token || '').trim();
+  const room  = rooms.get(code);
+  if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
+  if (room.hostToken !== token) return res.status(403).json({ ok: false, error: 'Invalid token' });
+  const snapshot = Buffer.from(JSON.stringify({
+    code:      room.code,
+    hostToken: room.hostToken,
+    questions: room.questions,
+    state:     room.state,
+  })).toString('base64');
+  res.json({ ok: true, snapshot, instruction: `Set RESERVED_ROOM=${snapshot} in Railway environment variables` });
+});
 
 // Temporary: verify token for a room (used for debugging resume issues)
 app.get('/api/room/:code/verify', (req, res) => {
@@ -600,7 +637,8 @@ io.on('connection', (socket) => {
   });
 });
 
-// Load any persisted teaser rooms before accepting connections
+// Load rooms on startup: env var first (survives deploys), then /tmp file (survives restarts)
+loadReservedRoom();
 loadPersistedRooms();
 
 server.listen(PORT, () => {

@@ -146,9 +146,13 @@ Timer: add (N) in seconds, e.g. "Question? (30)". Default 20s.</pre>
             <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em;">Share this link</div>
             <a id="teaserLinkAnchor" href="#" target="_blank" style="font-size:15px;font-weight:700;color:var(--accent);word-break:break-all;text-decoration:none;display:block;margin-bottom:12px;"></a>
             <div id="teaserTokenBox" style="background:#f0f4f8;border-radius:8px;padding:10px 14px;font-size:12px;color:#546e7a;line-height:1.7;">
-              🔑 <strong>Bookmark this host link to resume from any browser:</strong><br>
+              🔑 <strong>Bookmark this host link:</strong><br>
               <a id="hostResumeUrl" href="#" style="color:#0071dc;font-weight:700;word-break:break-all;font-size:12px;"></a><br>
-              <span style="font-size:11px;color:#90a4ae;">On quiz day, open this link → you'll land directly on the control screen.</span>
+              <span style="font-size:11px;color:#90a4ae;">On quiz day, open this link → you'll land directly on the control screen.</span><br><br>
+              <strong>🛡️ Make the teaser link permanent (survives server restarts):</strong><br>
+              <button id="snapshotBtn" style="margin-top:6px;background:#0071dc;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">📋 Copy RESERVED_ROOM value</button>
+              <span style="font-size:11px;color:#90a4ae;display:block;margin-top:4px;">Paste into Railway → Variables → RESERVED_ROOM</span>
+              <div id="snapshotMsg" style="margin-top:4px;font-size:11px;color:#2e7d32;"></div>
             </div>
           </div>
         </div>

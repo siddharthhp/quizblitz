@@ -340,6 +340,28 @@
     $('goToTeaserBtn').addEventListener('click', () => show('step-teaser'));
   }
 
+  // Snapshot button — fetches base64 room snapshot, copies to clipboard
+  // Paste as RESERVED_ROOM env var in Railway to make room survive all restarts
+  if ($('snapshotBtn')) {
+    $('snapshotBtn').addEventListener('click', async () => {
+      const { token } = getSavedSession();
+      if (!roomCode || !token) return;
+      try {
+        const res  = await fetch(`/api/room/${roomCode}/snapshot?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (!data.ok) { $('snapshotMsg').textContent = `❌ ${data.error}`; return; }
+        await navigator.clipboard.writeText(`RESERVED_ROOM=${data.snapshot}`);
+        $('snapshotMsg').textContent = '✅ Copied! Go to Railway → Variables → Add RESERVED_ROOM';
+        $('snapshotMsg').style.color = '#2e7d32';
+      } catch (e) {
+        // Fallback: show the value in a prompt
+        const res  = await fetch(`/api/room/${roomCode}/snapshot?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (data.ok) prompt('Copy this value and set as RESERVED_ROOM in Railway:', `RESERVED_ROOM=${data.snapshot}`);
+      }
+    });
+  }
+
   // ---- Lobby ----
   const seenPlayers = new Set();
   socket.on('roster', ({ players }) => {
