@@ -398,12 +398,8 @@
     (() => {
       const params = new URLSearchParams(location.search);
       const code   = (params.get('code') || '').toUpperCase().trim();
-      if (!code) {
-        document.querySelector('.headline').innerHTML = 'The quiz is coming 👀<br><span class="gold" style="font-size:0.6em;">Scan the QR code on the big screen to join!</span>';
-        return;
-      }
 
-      // ---- Stars ----
+      // ---- Stars (always run) ----
       const starsEl = document.getElementById('stars');
       for (let i = 0; i < 80; i++) {
         const s = document.createElement('div');
@@ -419,30 +415,15 @@
         starsEl.appendChild(s);
       }
 
-      // ---- Countdown ----
+      // ---- Countdown (always run) ----
       // Friday 4 July 2026, 12:00 PM IST = 06:30 UTC
-      let targetTime = new Date('2026-07-04T06:30:00Z').getTime();
-
-      // Override with server's goLiveAt if available
-      async function fetchTeaserMeta() {
-        try {
-          const res = await fetch(`/api/room/${code}`);
-          if (!res.ok) return;
-          const data = await res.json();
-          if (data.state !== 'teaser') { triggerGoLive(); return; }
-          if (data.teaser?.goLiveAt) {
-            const t = new Date(data.teaser.goLiveAt).getTime();
-            if (!isNaN(t)) targetTime = t;
-          }
-        } catch {}
-      }
-      fetchTeaserMeta();
+      const targetTime = new Date('2026-07-04T06:30:00Z').getTime();
 
       function pad(n) { return String(Math.max(0, n)).padStart(2, '0'); }
       function updateCountdown() {
         const diff = targetTime - Date.now();
         if (diff <= 0) {
-          ['cd-d','cd-h','cd-m','cd-s'].forEach((id, i) => {
+          ['cd-d','cd-h','cd-m','cd-s'].forEach((id) => {
             document.getElementById(id).textContent = '00';
           });
           return;
@@ -459,7 +440,7 @@
       updateCountdown();
       setInterval(updateCountdown, 1000);
 
-      // ---- Cycling teaser copy ----
+      // ---- Cycling teaser copy (always run) ----
       const COPIES = [
         '🤫 The questions are locked in a vault...',
         '🧠 Your brain cells are about to get a workout',
@@ -482,6 +463,12 @@
           copyEl.classList.remove('fade');
         }, 400);
       }, 4000);
+
+      // ---- No code = show message, stop here ----
+      if (!code) {
+        document.querySelector('.headline').innerHTML = 'The quiz is coming 👀<br><span class="gold" style="font-size:0.6em;">Scan the QR code on the big screen to join!</span>';
+        return;
+      }
 
       // ---- Mystery boxes ----
       const BOX_DATA = [
