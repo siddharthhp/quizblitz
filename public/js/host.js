@@ -11,16 +11,24 @@
   let roomCode = null;
 
   // ---- Host token (for resuming scheduled/teaser rooms) ----
-  const TOKEN_KEY = 'bb:hostToken';
-  const CODE_KEY  = 'bb:hostCode';
+  const TOKEN_KEY     = 'bb:hostToken';
+  const CODE_KEY      = 'bb:hostCode';
+  const QUESTIONS_KEY = 'bb:hostQuestions'; // questions persisted locally for auto-recreate
 
   function saveHostSession(code, token) {
     localStorage.setItem(CODE_KEY, code);
     localStorage.setItem(TOKEN_KEY, token);
   }
+  function saveQuestionsLocally(questions) {
+    try { localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions)); } catch {}
+  }
+  function loadQuestionsLocally() {
+    try { return JSON.parse(localStorage.getItem(QUESTIONS_KEY) || 'null'); } catch { return null; }
+  }
   function clearHostSession() {
     localStorage.removeItem(CODE_KEY);
     localStorage.removeItem(TOKEN_KEY);
+    // keep QUESTIONS_KEY so host can re-upload on next create
   }
   function getSavedSession() {
     return { code: localStorage.getItem(CODE_KEY), token: localStorage.getItem(TOKEN_KEY) };
@@ -33,12 +41,32 @@
     const urlCode  = (urlParams.get('code')  || '').toUpperCase().trim();
     const urlToken = (urlParams.get('token') || '').trim();
     if (urlCode && urlToken) {
-      // Auto-resume immediately from URL
       socket.on('connect', () => {
         socket.emit('host:resume', { code: urlCode, token: urlToken }, (ack) => {
           if (!ack?.ok) {
-            $('uploadMsg').textContent = `⚠️ Could not resume room ${urlCode}: ${ack?.error || 'Invalid token'}`;
-            $('uploadMsg').className = 'msg error';
+            // Room gone (server restarted) — auto-recreate using locally saved questions
+            const savedQuestions = loadQuestionsLocally();
+            if (savedQuestions && savedQuestions.length > 0) {
+              $('uploadMsg').textContent = '🔄 Room expired — recreating with your saved questions…';
+              $('uploadMsg').className = 'msg';
+              socket.emit('host:schedule', { questions: savedQuestions }, (ack2) => {
+                if (!ack2?.ok) {
+                  $('uploadMsg').textContent = `❌ Could not recreate room: ${ack2?.error}`;
+                  $('uploadMsg').className = 'msg error';
+                  return;
+                }
+                saveHostSession(ack2.code, ack2.hostToken);
+                // Attach questions
+                socket.emit('host:setQuestions', { questions: savedQuestions }, () => {});
+                roomCode = ack2.code;
+                showAfterResume(ack2.code, ack2.hostToken, savedQuestions.length);
+                $('uploadMsg').textContent = `✅ Room recreated (new link: ?code=${ack2.code})`;
+                $('uploadMsg').className = 'msg ok';
+              });
+            } else {
+              $('uploadMsg').textContent = '⚠️ Room expired — click Create Quiz Room to start fresh, then re-upload questions.';
+              $('uploadMsg').className = 'msg error';
+            }
             return;
           }
           saveHostSession(ack.code, urlToken);
@@ -53,7 +81,7 @@
           }
         });
       });
-      return; // skip localStorage check
+      return;
     }
 
     // Check localStorage for a saved session
@@ -288,6 +316,7 @@
           msg.className   = 'msg error';
           return;
         }
+        saveQuestionsLocally(data.questions); // persist locally for auto-recreate on server restart
         msg.textContent = `✅ ${ack.total} questions loaded! Ready to go.`;
         msg.className   = 'msg ok';
         const statusPill = $('questionsStatus');
