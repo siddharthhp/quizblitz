@@ -398,7 +398,10 @@
     (() => {
       const params = new URLSearchParams(location.search);
       const code   = (params.get('code') || '').toUpperCase().trim();
-      if (!code) { document.querySelector('.headline').textContent = 'No quiz found'; return; }
+      if (!code) {
+        document.querySelector('.headline').innerHTML = 'The quiz is coming 👀<br><span class="gold" style="font-size:0.6em;">Ask the host to share your link!</span>';
+        return;
+      }
 
       // ---- Stars ----
       const starsEl = document.getElementById('stars');
@@ -417,18 +420,8 @@
       }
 
       // ---- Countdown ----
-      // Default target: next Friday at 10:00 AM local time
-      function nextFriday() {
-        const now = new Date();
-        const day = now.getDay(); // 0=Sun … 5=Fri … 6=Sat
-        const daysUntilFri = day <= 5 ? 5 - day : 6; // days until next Friday
-        const fri = new Date(now);
-        fri.setDate(now.getDate() + (daysUntilFri === 0 ? 7 : daysUntilFri));
-        fri.setHours(10, 0, 0, 0);
-        return fri;
-      }
-
-      let targetTime = nextFriday().getTime();
+      // Friday 4 July 2026, 12:00 PM IST = 06:30 UTC
+      let targetTime = new Date('2026-07-04T06:30:00Z').getTime();
 
       // Override with server's goLiveAt if available
       async function fetchTeaserMeta() {
