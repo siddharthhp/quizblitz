@@ -491,7 +491,9 @@
           : `<button class="golive-btn" id="waitingJoinBtn" disabled style="opacity:0.6;cursor:not-allowed;">⏳ Waiting for host to open room…</button>`;
       }
 
-      let refreshed5Min = false;
+      // Use sessionStorage so the flag survives the reload itself — prevents loop
+      const REFRESH_KEY = 'bb:teaser5minRefreshed';
+      let refreshed5Min = !!sessionStorage.getItem(REFRESH_KEY);
       function updateCountdown() {
         const diff = targetTime - Date.now();
         if (diff <= 0) {
@@ -502,6 +504,7 @@
         // Hard refresh 5 minutes before start (once) so socket reconnects fresh
         if (!refreshed5Min && diff <= 5 * 60 * 1000) {
           refreshed5Min = true;
+          sessionStorage.setItem(REFRESH_KEY, '1');
           setTimeout(() => location.reload(), 500);
           return;
         }
@@ -523,8 +526,11 @@
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState !== 'visible') return;
         if (timerEnded) return;
+        if (refreshed5Min) return; // already refreshed this session
         const diff = targetTime - Date.now();
         if (diff <= 10 * 60 * 1000) {
+          refreshed5Min = true;
+          sessionStorage.setItem(REFRESH_KEY, '1');
           location.reload();
         }
       });
