@@ -491,21 +491,17 @@
           : `<button class="golive-btn" id="waitingJoinBtn" disabled style="opacity:0.6;cursor:not-allowed;">⏳ Waiting for host to open room…</button>`;
       }
 
-      // Use sessionStorage so the flag survives the reload itself — prevents loop
+      // Use sessionStorage so the refresh flag survives the reload — prevents loop
       const REFRESH_KEY = 'bb:teaser5minRefreshed';
       let refreshed5Min = !!sessionStorage.getItem(REFRESH_KEY);
+
       function updateCountdown() {
         const diff = targetTime - Date.now();
+
+        // Always update the display first
         if (diff <= 0) {
           ['cd-d','cd-h','cd-m','cd-s'].forEach(id => document.getElementById(id).textContent = '00');
           onTimerEnd();
-          return;
-        }
-        // Hard refresh 5 minutes before start (once) so socket reconnects fresh
-        if (!refreshed5Min && diff <= 5 * 60 * 1000) {
-          refreshed5Min = true;
-          sessionStorage.setItem(REFRESH_KEY, '1');
-          setTimeout(() => location.reload(), 500);
           return;
         }
         const d = Math.floor(diff / 86400000);
@@ -516,6 +512,13 @@
         document.getElementById('cd-h').textContent = pad(h);
         document.getElementById('cd-m').textContent = pad(m);
         document.getElementById('cd-s').textContent = pad(s);
+
+        // Hard refresh 5 minutes before start (once) — after display is already updated
+        if (!refreshed5Min && diff <= 5 * 60 * 1000) {
+          refreshed5Min = true;
+          sessionStorage.setItem(REFRESH_KEY, '1');
+          setTimeout(() => location.reload(), 1500);
+        }
       }
       updateCountdown();
       setInterval(updateCountdown, 1000);
