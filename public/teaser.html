@@ -517,6 +517,18 @@
       updateCountdown();
       setInterval(updateCountdown, 1000);
 
+      // visibilitychange is reliable even after days of idle —
+      // fires the moment user switches back to the tab.
+      // If we're within 10 mins of start time, reload immediately.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        if (timerEnded) return;
+        const diff = targetTime - Date.now();
+        if (diff <= 10 * 60 * 1000) {
+          location.reload();
+        }
+      });
+
       // ---- Go-live: room code received from host ----
       function onRoomReady(code) {
         liveCode = code;
